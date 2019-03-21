@@ -1,4 +1,7 @@
 2019-03-21 Magnus Hagdorn
+ * piccolo3/client/PiccoloSysinfo.py: wrap sysinfo class
+
+2019-03-21 Magnus Hagdorn
  * piccolo3/client/Piccolo.py: add client object to handle piccolo
 
 2019-03-07 Magnus Hagdorn
