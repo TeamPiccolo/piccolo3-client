@@ -89,6 +89,18 @@ class PiccoloClientComponent:
                                   uri=self.uri(resource))
         response = await protocol.request(request).response
         return self.handle_response(response)
+
+    async def a_observe(self,resource):
+        protocol = await aiocoap.Context.create_client_context()
+
+        request = aiocoap.Message(code=aiocoap.GET,uri=self.uri(resource),observe=0)
+
+        pr = protocol.request(request)
+        r = await pr.response
+        yield self.handle_response(r)
+
+        async for r in pr.observation:
+            yield self.handle_response(r)
         
     def get(self,resource):
         return asyncio.get_event_loop().run_until_complete(self.a_get(resource))
