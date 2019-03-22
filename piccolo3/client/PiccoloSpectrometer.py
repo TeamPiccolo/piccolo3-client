@@ -23,6 +23,7 @@
 __all__ = ['PiccoloSpectrometers']
 
 from .PiccoloBaseClient import *
+import asyncio
 
 import os.path
 import json
@@ -31,31 +32,65 @@ import time
 class PiccoloSpectrometer(PiccoloNamedClientComponent):
     NAME = "spectrometer"
     
-    def __init__(self,baseurl,name):
+    def __init__(self,baseurl,name,channels):
 
         super().__init__(baseurl,name)
 
+        self._channels = channels
+        self._min_time = None
+        self._max_time = None
+        self._current_time = {}
+
+        loop = asyncio.get_event_loop()
+        loop.create_task(self._update_min_time())
+        loop.create_task(self._update_max_time())
+        for c in self.channels:
+            loop.create_task(self._update_current_time(c))
+            
+    @property
+    def channels(self):
+        return self._channels
+
+    async def _update_min_time(self):
+        async for t in self.a_observe('min_time'):
+           self._min_time = t
+    async def get_min_time(self):
+        self._min_time = await self.a_get('min_time')
+        return self._min_time
+    async def set_min_time(self,t):
+        await self.a_put('min_time',t)
+
+    async def _update_max_time(self):
+        async for t in self.a_observe('max_time'):
+           self._max_time = t
+    async def get_max_time(self):
+        self._max_time = await self.a_get('max_time')
+        return self._max_time
+    async def set_max_time(self,t):
+        await self.a_put('max_time',t)
+
+    async def _update_current_time(self,c):
+        async for t in self.a_observe('current_time/'+c):
+           self._current_time[c] = t
+    async def get_current_time(self,c):
+        self._current_time[c] = await self.a_get('current_time/'+c)
+        return self._current_time[c]
+    async def set_current_time(self,c,t):
+        await self.a_put('current_time/'+c,t)
+        
+    async def get_status(self):
+        s = await self.a_get('status')
+        return s
+        
     @property
     def min_time(self):
-        return self.get('min_time')
-    @min_time.setter
-    def min_time(self,t):
-        self.put('min_time',t)
+        return self._min_time
     @property
     def max_time(self):
-        return self.get('max_time')
-    @max_time.setter
-    def max_time(self,t):
-        self.put('max_time',t)
-
-    @property
-    def status(self):
-        return self.get('status')
+        return self._max_time
         
     def get_current_time(self,channel):
-        return self.get(os.path.join('current_time',channel))
-    def set_current_time(self,channel,t):
-        return self.put(os.path.join('current_time',channel))
+        return self._current_time[channel]
     
 class PiccoloSpectrometers(PiccoloClientComponent):
 
@@ -65,53 +100,52 @@ class PiccoloSpectrometers(PiccoloClientComponent):
         super().__init__(baseurl,path='/spectrometer')
 
         self._spectrometers = {}
-        
-        for s in self.get('spectrometers'):
-            self._spectrometers[s] = PiccoloSpectrometer(baseurl,s)
 
-    @property
-    def spectrometers(self):
-        return self._spectrometers
+        loop = asyncio.get_event_loop()
+        loop.create_task(self._init_spectrometers())
+
+    async def _init_spectrometers(self):
+        channels = await self.a_get('channels')
+        specs = await self.a_get('spectrometers')
+        for s in specs:
+            if s not in self._spectrometers:
+                self._spectrometers[s] = PiccoloSpectrometer(self.baseurl,s,channels)
             
     # implement methods so object can act as a read-only dictionary
     def keys(self):
-        return self.spectrometers.keys()
+        return self._spectrometers.keys()
     def __getitem__(self,s):
-        return self.spectrometers[s]
+        return self._spectrometers[s]
     def __len__(self):
-        return len(self.spectrometers)
+        return len(self._spectrometers)
     def __iter__(self):
         for s in self.keys():
             yield s
     def __contains__(self,s):
-        return s in self.spectrometers
+        return s in self._spectrometers
     
+
+async def main():
+    base = 'coap://piccolo-thing2'
+
+    spectrometers = PiccoloSpectrometers(base)
+
+    for i in range(10):
+
+        for s in spectrometers:
+            print (spectrometers[s].name,spectrometers[s].min_time,spectrometers[s].max_time,spectrometers[s].channels)
+            for channel in spectrometers[s].channels:
+                print (spectrometers[s].name,channel,spectrometers[s].get_current_time(channel))
+            print (await spectrometers[s].get_status())
+
+        print('\n')
+            
+        await asyncio.sleep(1)
+
 if __name__ == '__main__':
     import time
     from piccolo3.common import piccoloLogging
     piccoloLogging(debug=True)
 
-    base = 'coap://piccolo-thing2'
-
-    if True:
-        spectrometers = PiccoloSpectrometers(base)
-
-        for s in spectrometers:
-            print (spectrometers[s].name,spectrometers[s].min_time,spectrometers[s].max_time)
-            for channel in ['upwelling','downwelling']:
-                print (spectrometers[s].name,channel,spectrometers[s].get_current_time(channel))
-            print (spectrometers[s].status)
-            print('\n')
-
-    else:
-        spectrometer = PiccoloSpectrometer(client,'S_instrument_simulator_2')
-        print(spectrometer.min_time)
-
-        spectrometer.min_time = 6
-        
-        for i in range(20):
-            print(spectrometer.min_time)
-            time.sleep(1)
-        
-
-
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())

@@ -23,12 +23,13 @@
 __all__ = ['PiccoloControl']
 
 from .PiccoloBaseClient import *
+import asyncio
 
 class PiccoloControl(PiccoloClientComponent):
 
     NAME = "control"
 
-    def record_sequence(self,run,nsequence=1,auto=-1,delay=0.):
+    async def record_sequence(self,run,nsequence=1,auto=-1,delay=0.):
         """start recording a batch
 
         :param run: name of the current run
@@ -37,39 +38,40 @@ class PiccoloControl(PiccoloClientComponent):
         :param delay: delay in seconds between each sequence
         """
 
-        self.put('record_sequence',run,nsequence=nsequence,auto=auto,delay=delay)
+        await self.a_put('record_sequence',run,nsequence=nsequence,auto=auto,delay=delay)
 
-    def record_dark(self,run):
+    async def record_dark(self,run):
         """record a dark spectrum
 
         :param run: name of the current run
         """
 
-        self.put('record_dark',run)
+        await self.a_put('record_dark',run)
 
-    @property
-    def current_sequence(self):
-        return self.get('current_sequence')
+    async def get_current_sequence(self):
+        return await self.a_get('current_sequence')
 
-    @property
-    def status(self):
-        return self.get('status')
+    async def get_status(self):
+        return await self.a_get('status')
 
 
+async def main():
+    base = 'coap://piccolo-thing2'
+
+    p = PiccoloControl(base)
+
+    print (await p.get_status())
+
+    await p.record_sequence('test_client',nsequence=10)
+
+    for i in range(10):
+        print (await p.get_status(),await p.get_current_sequence())
+        await asyncio.sleep(0.5)
+    
 if __name__ == '__main__':
     import time
     from piccolo3.common import piccoloLogging
     piccoloLogging(debug=True)
 
-    base = 'coap://piccolo-thing2'
-
-    p = PiccoloControl(base)
-
-    print (p.status)
-
-    p.record_sequence('test_client',nsequence=10)
-
-    for i in range(10):
-        print (p.status,p.current_sequence)
-        time.sleep(0.5)
-    
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())

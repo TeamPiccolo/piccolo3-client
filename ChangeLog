@@ -1,3 +1,8 @@
+2019-03-22 Magnus Hagdorn
+ * piccolo3/client/Piccolo.py: make interface async
+ * piccolo3/client/PiccoloSpectrometer.py: ditto
+ * piccolo3/client/PiccoloSysinfo.py: ditto
+
 2019-03-22 Magnus Hagdorn 
  * piccolo3/client/PiccoloBaseClient.py: add async method to observe a
    resource

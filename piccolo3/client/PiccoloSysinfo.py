@@ -23,39 +23,51 @@
 __all__ = ['PiccoloSysinfo']
 
 from .PiccoloBaseClient import *
+import asyncio
 
 class PiccoloSysinfo(PiccoloClientComponent):
 
     NAME = "sysinfo"
 
-    @property
-    def cpu(self):
-        return self.get('cpu')
-    @property
-    def mem(self):
-        return self.get('mem')
-    @property
-    def host(self):
-        return self.get('host')
-    @property
-    def clock(self):
-        return self.get('clock')
-    @clock.setter
-    def clock(self,data):
-        self.put('clock',data)
+    async def get_cpu(self):
+        c = await self.a_get('cpu')
+        return c
+    async def get_mem(self):
+        m = await self.a_get('mem')
+        return m
+    async def get_host(self):
+        h = await self.a_get('host')
+        return h
+    async def get_clock(self):
+        c = await self.a_get('clock')
+        return c
+    async def get_status(self):
+        cpu = await self.get_cpu()
+        mem = await self.get_mem()
+        return (cpu,mem)
+    
+    async def set_clock(self,data):
+        await self.a_put('clock',data)
+
+
+async def main():
+    base = 'coap://piccolo-thing2'
+
+    p = PiccoloSysinfo(base)
+
+    print (await p.get_host())
+    for i in range(5):
+        c = await p.get_clock()
+        cpu,mem = await p.get_status()
+        
+        print (c,cpu,mem)
+        await asyncio.sleep(1)
+
 
 if __name__ == '__main__':
     import time
     from piccolo3.common import piccoloLogging
     piccoloLogging(debug=True)
 
-    base = 'coap://piccolo-thing2'
-
-    p = PiccoloSysinfo(base)
-
-    print (p.host)
-    for i in range(5):
-        print (p.clock,p.cpu,p.mem)
-        time.sleep(1)
-
-    #p.clock = 'blub'
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
