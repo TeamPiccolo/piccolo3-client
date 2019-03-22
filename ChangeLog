@@ -1,3 +1,6 @@
+2019-03-22 Magnus Hgadorn
+ * piccolo3/client/__init__.py: make it a package
+
 2019-03-22 Magnus Hagdorn
  * piccolo3/client/Piccolo.py: make interface async
  * piccolo3/client/PiccoloSpectrometer.py: ditto
