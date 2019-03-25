@@ -28,13 +28,22 @@ import json
 import logging
 import os.path
 
+class PiccoloProtocol:
+    __protocol = None
+
+    async def protocol(self):
+        if self.__protocol is None:
+            self.__protocol = await aiocoap.Context.create_client_context()
+        return self.__protocol
+
 class PiccoloClientComponent:
     NAME = 'component'
     
     def __init__(self,baseurl,path=None):
         self._log = logging.getLogger(self.logName)
+        self.protocol = PiccoloProtocol()
         self._baseurl = baseurl
-        self._path = path        
+        self._path = path
         self.log.debug("initialised")
 
     @property
@@ -72,7 +81,7 @@ class PiccoloClientComponent:
                 response.code,p))
     
     async def a_get(self,resource):
-        protocol = await aiocoap.Context.create_client_context()
+        protocol = await self.protocol.protocol()
 
         request = aiocoap.Message(code=aiocoap.GET,uri=self.uri(resource))
         p_request = protocol.request(request)
@@ -83,7 +92,7 @@ class PiccoloClientComponent:
     async def a_put(self,resource,*args,**kwargs):
         payload = json.dumps([args,kwargs]).encode()
         
-        protocol = await aiocoap.Context.create_client_context()
+        protocol = await self.protocol.protocol()
         request = aiocoap.Message(code=aiocoap.PUT,
                                   payload = payload,
                                   uri=self.uri(resource))
@@ -91,7 +100,7 @@ class PiccoloClientComponent:
         return self.handle_response(response)
 
     async def a_observe(self,resource):
-        protocol = await aiocoap.Context.create_client_context()
+        protocol = await self.protocol.protocol()
 
         request = aiocoap.Message(code=aiocoap.GET,uri=self.uri(resource),observe=0)
 

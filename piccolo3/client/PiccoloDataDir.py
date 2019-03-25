@@ -42,7 +42,7 @@ class PiccoloRunDir(PiccoloNamedClientComponent):
 
     @property
     def current_batch(self):
-        return return self._current_batch
+        return self._current_batch
 
 class PiccoloDataDir(PiccoloClientComponent):
     """manage piccolo output data directory"""
@@ -52,7 +52,7 @@ class PiccoloDataDir(PiccoloClientComponent):
     def __init__(self,baseurl):
         super().__init__(baseurl)
 
-
+        self._datadir = None
         self._current_run = None
         self._runs = {}
         loop = asyncio.get_event_loop()
@@ -76,6 +76,11 @@ class PiccoloDataDir(PiccoloClientComponent):
         return r
     async def set_mount(self,m):
         await self.a_put('mount',m)
+
+    async def get_datadir(self):
+        if self._datadir is None:
+            self._datadir = await self.a_get('datadir')
+        return self._datadir
         
     async def get_current_run(self):
         run = await self.a_get('current_run')

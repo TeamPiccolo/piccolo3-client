@@ -1,3 +1,11 @@
+2019-03-25 Magnus Hagdorn
+ * piccolo3/client/PiccoloBaseClient.py: use singleton class to manage client
+   context
+ * piccolo3/client/PiccoloDataDir.py: fix bug; report data directory
+ * piccolo3/client/PiccoloSysinfo.py: report server version; cache server
+   hostname
+ * piccolo3/client/__init__.py: fix package name
+
 2019-03-22 Magnus Hgadorn
  * piccolo3/client/__init__.py: make it a package
 
