@@ -52,17 +52,12 @@ class PiccoloSysinfo(PiccoloClientComponent):
     async def get_clock(self):
         c = await self.a_get('clock')
         return c
-    async def get_status(self):
-        cpu = await self.get_cpu()
-        mem = await self.get_mem()
-        return (cpu,mem)
+
     async def get_info(self):
         info = {}
         info['cpu'] = await self.get_cpu()
         info['mem'] = await self.get_mem()
-        info['clock'] = await self.get_clock()
         return info
-    
     
     async def set_clock(self,data):
         await self.a_put('clock',data)
@@ -76,9 +71,9 @@ async def main():
     print (await p.get_host())
     for i in range(5):
         c = await p.get_clock()
-        cpu,mem = await p.get_status()
+        info = await p.get_info()
         
-        print (c,cpu,mem)
+        print (c,info['cpu'],info['mem'])
         await asyncio.sleep(1)
 
 

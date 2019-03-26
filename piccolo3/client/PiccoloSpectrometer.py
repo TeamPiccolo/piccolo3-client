@@ -41,6 +41,8 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         self._max_time = None
         self._current_time = {}
 
+        self._callbacks = []
+        
         loop = asyncio.get_event_loop()
         loop.create_task(self._update_min_time())
         loop.create_task(self._update_max_time())
@@ -51,8 +53,14 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
     def channels(self):
         return self._channels
 
+    def register_callback(self,cb):
+        self._callbacks.append(cb)
+    
     async def _update_min_time(self):
-        async for t in self.a_observe('min_time'):
+        u = 'min_time'
+        async for t in self.a_observe(u):
+           for cb in self._callbacks:
+               await cb(json.dumps((self.name,u,t)))
            self._min_time = t
     async def get_min_time(self):
         self._min_time = await self.a_get('min_time')
@@ -61,7 +69,10 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         await self.a_put('min_time',t)
 
     async def _update_max_time(self):
+        u = 'max_time'
         async for t in self.a_observe('max_time'):
+           for cb in self._callbacks:
+               await cb(json.dumps((self.name,u,t)))
            self._max_time = t
     async def get_max_time(self):
         self._max_time = await self.a_get('max_time')
@@ -70,7 +81,10 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         await self.a_put('max_time',t)
 
     async def _update_current_time(self,c):
-        async for t in self.a_observe('current_time/'+c):
+        u = 'current_time/'+c
+        async for t in self.a_observe(u):
+           for cb in self._callbacks:
+               await cb(json.dumps((self.name,u,t)))
            self._current_time[c] = t
     async def get_current_time(self,c):
         self._current_time[c] = await self.a_get('current_time/'+c)
@@ -100,16 +114,36 @@ class PiccoloSpectrometers(PiccoloClientComponent):
         super().__init__(baseurl,path='/spectrometer')
 
         self._spectrometers = {}
+        self._specs = None
+        self._channels = None
+        self._callbacks = []
 
         loop = asyncio.get_event_loop()
         loop.create_task(self._init_spectrometers())
 
     async def _init_spectrometers(self):
-        channels = await self.a_get('channels')
-        specs = await self.a_get('spectrometers')
+        channels = await self.get_channels()
+        specs = await self.get_spectrometers()
         for s in specs:
             if s not in self._spectrometers:
                 self._spectrometers[s] = PiccoloSpectrometer(self.baseurl,s,channels)
+                for c in self._callbacks:
+                    self._spectrometers[s].register_callback(c)
+
+    def register_callback(self,cb):
+        self._callbacks.append(cb)
+        for s in self.keys():
+            self[s].register_callback(cb)
+
+    async def get_spectrometers(self):
+        if self._specs is None:
+            self._specs = await self.a_get('spectrometers')
+        return self._specs
+            
+    async def get_channels(self):
+        if self._channels is None:
+            self._channels = await self.a_get('channels')
+        return self._channels
             
     # implement methods so object can act as a read-only dictionary
     def keys(self):
