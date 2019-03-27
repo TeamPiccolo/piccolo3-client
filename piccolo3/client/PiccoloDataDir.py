@@ -85,7 +85,7 @@ class PiccoloDataDir(PiccoloClientComponent):
     async def get_current_run(self):
         run = await self.a_get('current_run')
         if run not in self._runs:
-            self._runs = PiccoloRunDir(self.baseurl,run)
+            self._runs[run] = PiccoloRunDir(self.baseurl,run)
         self._current_run = self._runs[run]
         return self._current_run
     async def set_current_run(self,run):

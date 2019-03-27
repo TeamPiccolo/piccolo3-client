@@ -1,4 +1,7 @@
 2019-03-27 Magnus Hagdorn
+ * piccolo3/client/PiccoloDataDir.py: fix bug
+
+2019-03-27 Magnus Hagdorn
  * piccolo3/client/Piccolo.py: observe changes of status
  * piccolo3/client/__init__.py: gather all piccolo client objects into a
    single object
