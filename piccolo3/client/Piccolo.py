@@ -24,11 +24,23 @@ __all__ = ['PiccoloControl']
 
 from .PiccoloBaseClient import *
 import asyncio
+import json
 
 class PiccoloControl(PiccoloClientComponent):
 
     NAME = "control"
 
+    def __init__(self,baseurl):
+
+        super().__init__(baseurl)
+        
+        self._callbacks = []
+        loop = asyncio.get_event_loop()
+        loop.create_task(self._update_status())
+
+    def register_callback(self,cb):
+        self._callbacks.append(cb)
+        
     async def record_sequence(self,run,nsequence=1,auto=-1,delay=0.):
         """start recording a batch
 
@@ -51,6 +63,10 @@ class PiccoloControl(PiccoloClientComponent):
     async def get_current_sequence(self):
         return await self.a_get('current_sequence')
 
+    async def _update_status(self):
+        async for s in self.a_observe('status'):
+           for cb in self._callbacks:
+               await cb(json.dumps({'status':s}))
     async def get_status(self):
         return await self.a_get('status')
 

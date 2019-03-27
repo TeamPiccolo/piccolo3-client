@@ -27,3 +27,10 @@ from .Piccolo import *
 from .PiccoloDataDir import *
 from .PiccoloSysinfo import *
 from .PiccoloSpectrometer import *
+
+class PiccoloSystem:
+    def __init__(self,baseurl):
+        self.control = PiccoloControl(baseurl)
+        self.sys = PiccoloSysinfo(baseurl)
+        self.spec = PiccoloSpectrometers(baseurl)
+        self.data = PiccoloDataDir(baseurl)
