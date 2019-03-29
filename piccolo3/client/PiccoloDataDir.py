@@ -35,7 +35,13 @@ class PiccoloRunDir(PiccoloNamedClientComponent):
 
     def __str__(self):
         return self.name
-        
+
+    async def get_spectra(self,sname):
+        return await self.a_put('spectra',sname)
+    
+    async def get_spectra_list(self):
+        return await self.a_get('spectra_list')
+    
     async def get_current_batch(self):
         self._current_batch = await self.a_get('current_batch')
         return self._current_batch
@@ -92,6 +98,10 @@ class PiccoloDataDir(PiccoloClientComponent):
         if isinstance(run,PiccoloRunDir):
             run = run.name
         await self.a_put('current_run',run)
+
+    async def get_runs(self,alpha=False,reverse=False,nitems=None,page=0):
+        runs = await self.a_put('all_runs',alpha=alpha,reverse=reverse,nitems=nitems,page=page)
+        return runs
         
     @property
     def current_run(self):
@@ -137,6 +147,8 @@ async def main():
     await asyncio.sleep(30)
     
     print (dataDir.keys())
+
+    print (await dataDir.get_runs())
 
         
 if __name__ == '__main__':
