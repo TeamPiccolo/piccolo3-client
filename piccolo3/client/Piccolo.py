@@ -60,6 +60,12 @@ class PiccoloControl(PiccoloClientComponent):
 
         await self.a_put('record_dark',run)
 
+    async def auto(self):
+        """autointegrate
+        """
+
+        await self.a_get('auto')
+        
     async def get_current_sequence(self):
         return await self.a_get('current_sequence')
 

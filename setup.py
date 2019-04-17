@@ -25,7 +25,7 @@ setup(
     setup_requires=['setuptools_scm'],
     include_package_data = True,
     install_requires = [
-        'CoAPthon3',
+        'aiocoap',
         'pytz',
         'configobj',
     ],
