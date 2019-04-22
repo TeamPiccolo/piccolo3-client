@@ -41,16 +41,24 @@ class PiccoloControl(PiccoloClientComponent):
     def register_callback(self,cb):
         self._callbacks.append(cb)
         
-    async def record_sequence(self,run,nsequence=1,auto=-1,delay=0.):
+    async def record_sequence(self,run,nsequence=1,auto=-1,delay=0., at_time=None,interval=None,end_time=None):
         """start recording a batch
 
         :param run: name of the current run
         :param nsequence: the number of squences to record
         :param auto: can be -1 for never; 0 once at the beginning; otherwise every nth measurement
         :param delay: delay in seconds between each sequence
+        :param at_time: the time at which the job should run or None
+        :param interval: repeated scheduled run if interval is not set to None
+        :param end_time: the time after which the job is no longer scheduled
         """
 
-        await self.a_put('record_sequence',run,nsequence=nsequence,auto=auto,delay=delay)
+        if at_time:
+            at_time = str(at_time)
+        if end_time:
+            end_time = str(end_time)
+        
+        await self.a_put('record_sequence',run,nsequence=nsequence,auto=auto,delay=delay,at_time=at_time,interval=interval,end_time=end_time)
 
     async def record_dark(self,run):
         """record a dark spectrum
@@ -78,20 +86,33 @@ class PiccoloControl(PiccoloClientComponent):
 
 
 async def main():
-    base = 'coap://piccolo-thing2'
+    base = 'coap://localhost'
 
     p = PiccoloControl(base)
 
     print (await p.get_status())
 
-    await p.record_sequence('test_client',nsequence=10)
+    #await p.record_sequence('test_client',nsequence=10)
+    if False:
 
-    for i in range(10):
-        print (await p.get_status(),await p.get_current_sequence())
-        await asyncio.sleep(0.5)
+
+        for i in range(10):
+            print (await p.get_status(),await p.get_current_sequence())
+            await asyncio.sleep(0.5)
+
+    now = datetime.datetime.now(tz=pytz.utc)
+    await p.record_sequence('test_client',nsequence=10,at_time=now+datetime.timedelta(seconds=15))
+    
+    await asyncio.sleep(10)
+    
+    #for i in range(30):
+    #    print (await p.get_status(),await p.get_current_sequence())
+    #    await asyncio.sleep(1)                 
     
 if __name__ == '__main__':
     import time
+    import datetime
+    import pytz
     from piccolo3.common import piccoloLogging
     piccoloLogging(debug=True)
 

@@ -30,6 +30,9 @@ setup(
         'configobj',
     ],
     entry_points={
+        'console_scripts': [
+            'piccolo3-record = piccolo3.precord:main',
+            ],
     },
 
     # metadata for upload to PyPI
