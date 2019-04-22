@@ -74,6 +74,11 @@ class PiccoloControl(PiccoloClientComponent):
 
         await self.a_get('auto')
         
+    async def pause(self):
+        """pause data acquisition"""
+
+        await self.a_get('pause')
+        
     async def get_current_sequence(self):
         return await self.a_get('current_sequence')
 

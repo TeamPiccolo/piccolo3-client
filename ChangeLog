@@ -1,4 +1,7 @@
 2019-04-22 Magnus Hagdorn
+ * piccolo3/client/Piccolo.py: add method to pause server
+
+2019-04-22 Magnus Hagdorn
  * piccolo3/client/Piccolo.py: add extra keyword arguments to schedule a
    sequence run
  * setup.py: install new script
