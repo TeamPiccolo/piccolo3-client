@@ -33,15 +33,73 @@ class PiccoloControl(PiccoloClientComponent):
     def __init__(self,baseurl):
 
         super().__init__(baseurl)
+
+        self._numSequences = None
+        self._autointegration = None
+        self._delay = None
+        self._target = None
         
         self._callbacks = []
         loop = asyncio.get_event_loop()
         loop.create_task(self._update_status())
+        loop.create_task(self._update_numSequences())
+        loop.create_task(self._update_autointegration())
+        loop.create_task(self._update_delay())
+        loop.create_task(self._update_target())
 
     def register_callback(self,cb):
         self._callbacks.append(cb)
         
-    async def record_sequence(self,run,nsequence=1,auto=-1,delay=0., at_time=None,interval=None,end_time=None):
+    async def _update_numSequences(self):
+        u = 'numSequences'
+        async for n in self.a_observe(u):
+            for cb in self._callbacks:
+                await cb(json.dumps({u:n}))
+            self._numSequences = n
+    async def get_numSequences(self):
+        self._numSequences = await self.a_get('numSequences')
+        return self._numSequences
+    async def set_numSequences(self,n):
+        await self.a_put('numSequences',n)
+
+    async def _update_autointegration(self):
+        u = 'autointegration'
+        async for n in self.a_observe(u):
+            for cb in self._callbacks:
+                await cb(json.dumps({u:n}))
+            self._autointegration = n
+    async def get_autointegration(self):
+        self._autointegration = await self.a_get('autointegration')
+        return self._autointegration
+    async def set_autointegration(self,n):
+        await self.a_put('autointegration',n)
+
+    async def _update_delay(self):
+        u = 'delay'
+        async for n in self.a_observe(u):
+            for cb in self._callbacks:
+                await cb(json.dumps({u:n}))
+            self._delay = n
+    async def get_delay(self):
+        self._delay = await self.a_get('delay')
+        return self._delay
+    async def set_delay(self,n):
+        await self.a_put('delay',n)
+
+    async def _update_target(self):
+        u = 'target'
+        async for n in self.a_observe(u):
+            for cb in self._callbacks:
+                await cb(json.dumps({u:n}))
+            self._target = n
+    async def get_target(self):
+        self._target = await self.a_get('target')
+        return self._target
+    async def set_target(self,n):
+        await self.a_put('target',n)
+
+        
+    async def record_sequence(self,run=None,nsequence=None,auto=None,delay=None, at_time=None,interval=None,end_time=None):
         """start recording a batch
 
         :param run: name of the current run
@@ -53,20 +111,20 @@ class PiccoloControl(PiccoloClientComponent):
         :param end_time: the time after which the job is no longer scheduled
         """
 
-        if at_time:
+        if at_time is not None:
             at_time = str(at_time)
-        if end_time:
+        if end_time is not None:
             end_time = str(end_time)
         
-        await self.a_put('record_sequence',run,nsequence=nsequence,auto=auto,delay=delay,at_time=at_time,interval=interval,end_time=end_time)
+        await self.a_put('record_sequence',run=run,nsequence=nsequence,auto=auto,delay=delay,at_time=at_time,interval=interval,end_time=end_time)
 
-    async def record_dark(self,run):
+    async def record_dark(self,run=None):
         """record a dark spectrum
 
         :param run: name of the current run
         """
 
-        await self.a_put('record_dark',run)
+        await self.a_put('record_dark',run=run)
 
     async def auto(self):
         """autointegrate

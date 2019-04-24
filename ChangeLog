@@ -1,3 +1,9 @@
+2019-04-24 Magnus Hagdorn
+ * piccolo3/client/Piccolo.py: add methods to handle numSequences,
+   autointegration, delay and target settings; make all arguments to
+   record_sequence and record_dark optional
+ * piccolo3/client/PiccoloDataDir.py: handle updates to current_run
+
 2019-04-23 Magnus Hagdorn
  * piccolo3/client/Piccolo.py: add method to abort acquisition
 

@@ -24,6 +24,7 @@ __all__ = ['PiccoloDataDir']
 
 from .PiccoloBaseClient import *
 import asyncio, aiocoap
+import json
 
 class PiccoloRunDir(PiccoloNamedClientComponent):
     NAME = 'run'
@@ -61,10 +62,15 @@ class PiccoloDataDir(PiccoloClientComponent):
         self._datadir = None
         self._current_run = None
         self._runs = {}
+
+        self._callbacks = []
         loop = asyncio.get_event_loop()
         loop.create_task(self._init_runs())
         loop.create_task(self._update_current_run())
 
+    def register_callback(self,cb):
+        self._callbacks.append(cb)
+        
     async def _init_runs(self):
         runs = await self.a_put('all_runs')
         for r in runs:
@@ -75,6 +81,8 @@ class PiccoloDataDir(PiccoloClientComponent):
         async for r in self.a_observe('current_run'):
             if r not in self._runs:
                 self._runs[r] = PiccoloRunDir(self.baseurl,r)
+            for cb in self._callbacks:
+                await cb(json.dumps({'current_run':r}))
             self._current_run = self._runs[r]
                 
     async def get_mount(self):
