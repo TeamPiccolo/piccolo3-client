@@ -99,13 +99,14 @@ class PiccoloControl(PiccoloClientComponent):
         await self.a_put('target',n)
 
         
-    async def record_sequence(self,run=None,nsequence=None,auto=None,delay=None, at_time=None,interval=None,end_time=None):
+    async def record_sequence(self,run=None,nsequence=None,auto=None,delay=None, target=None,at_time=None,interval=None,end_time=None):
         """start recording a batch
 
         :param run: name of the current run
         :param nsequence: the number of squences to record
         :param auto: can be -1 for never; 0 once at the beginning; otherwise every nth measurement
         :param delay: delay in seconds between each sequence
+        :param target: target saturation percentage for autointegration
         :param at_time: the time at which the job should run or None
         :param interval: repeated scheduled run if interval is not set to None
         :param end_time: the time after which the job is no longer scheduled
@@ -116,7 +117,7 @@ class PiccoloControl(PiccoloClientComponent):
         if end_time is not None:
             end_time = str(end_time)
         
-        await self.a_put('record_sequence',run=run,nsequence=nsequence,auto=auto,delay=delay,at_time=at_time,interval=interval,end_time=end_time)
+        await self.a_put('record_sequence',run=run,nsequence=nsequence,auto=auto,delay=delay,target=target,at_time=at_time,interval=interval,end_time=end_time)
 
     async def record_dark(self,run=None):
         """record a dark spectrum
@@ -126,11 +127,13 @@ class PiccoloControl(PiccoloClientComponent):
 
         await self.a_put('record_dark',run=run)
 
-    async def auto(self):
+    async def auto(self,target=None):
         """autointegrate
+
+        :param target: target saturation percentage for autointegration
         """
 
-        await self.a_get('auto')
+        await self.a_put('auto',target=target)
         
     async def pause(self):
         """pause data acquisition"""

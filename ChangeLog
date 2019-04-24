@@ -1,4 +1,7 @@
 2019-04-24 Magnus Hagdorn
+ * piccolo3/client/Piccolo.py: pass target saturation as argument
+
+2019-04-24 Magnus Hagdorn
  * piccolo3/client/Piccolo.py: add methods to handle numSequences,
    autointegration, delay and target settings; make all arguments to
    record_sequence and record_dark optional
