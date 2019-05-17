@@ -1,3 +1,6 @@
+2019-05-17 Magnus Hagdorn
+ * piccolo3/client/PiccoloSpectrometer.py: observe spectrometer status
+
 2019-04-24 Magnus Hagdorn
  * piccolo3/client/Piccolo.py: pass target saturation as argument
 

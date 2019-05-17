@@ -41,10 +41,12 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         self._max_time = None
         self._current_time = {}
         self._auto_status = {}
+        self._status = None
 
         self._callbacks = []
         
         loop = asyncio.get_event_loop()
+        loop.create_task(self._update_status())
         loop.create_task(self._update_min_time())
         loop.create_task(self._update_max_time())
         for c in self.channels:
@@ -57,7 +59,7 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
 
     def register_callback(self,cb):
         self._callbacks.append(cb)
-    
+        
     async def _update_min_time(self):
         u = 'min_time'
         async for t in self.a_observe(u):
@@ -103,11 +105,20 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
     async def get_auto_status(self,c):
         self._auto_status[c] = await self.a_get('autointegration/'+c)
         return self._auto_status[c]
-        
+
+    async def _update_status(self):
+        u = 'status'
+        async for t in self.a_observe(u):
+           for cb in self._callbacks:
+               await cb(json.dumps((self.name,u,t)))
+           self._status = t
     async def get_status(self):
         s = await self.a_get('status')
         return s
-        
+
+    @property
+    def status(self):
+        return self._status
     @property
     def min_time(self):
         return self._min_time
