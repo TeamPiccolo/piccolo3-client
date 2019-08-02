@@ -1,3 +1,6 @@
+2019-08-02 Magnus Hagdorn
+ * piccolo3/client/PiccoloScheduler.py: add functionality to get list of jobs
+
 2019-07-30 Magnus Hagdorn
  * piccolo3/client/__init__.py: setup piccolo scheduler
  * piccolo3/client/PiccoloScheduler.py: add new module to handle piccolo

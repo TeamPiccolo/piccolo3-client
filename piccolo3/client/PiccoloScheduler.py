@@ -39,11 +39,14 @@ class PiccoloScheduler(PiccoloClientComponent):
         self._quietStart = None
         self._quietEnd  = None
 
+        self._jobs = []
+        
         self._callbacks = []
         loop = asyncio.get_event_loop()
         loop.create_task(self._update_quietTimeEnabled())
         loop.create_task(self._update_quietStart())
         loop.create_task(self._update_quietEnd())
+        loop.create_task(self._update_jobs())
 
         self._TIME_FORMAT = "%H:%M:%S%z"
         
@@ -111,6 +114,20 @@ class PiccoloScheduler(PiccoloClientComponent):
         if n != self.quietEnd:
             self.quietEnd = n
             await self.a_put('quietEnd',self.quietEnd.strftime(self._TIME_FORMAT))
+
+    @property
+    def jobs(self):
+        return self._jobs
+    async def _update_jobs(self):
+        u = 'jobs'
+        async for n in self.a_observe(u):
+            for cb in self._callbacks:
+                await cb(json.dumps({u:n}))
+            self._jobs = n
+    async def get_jobs(self):
+        self._jobs = await self.a_get('jobs')
+        return self._jobs
+    
 
 async def main():
     base = 'coap://piccolo-thing2'
