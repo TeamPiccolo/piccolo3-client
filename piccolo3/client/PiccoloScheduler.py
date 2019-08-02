@@ -128,7 +128,15 @@ class PiccoloScheduler(PiccoloClientComponent):
         self._jobs = await self.a_get('jobs')
         return self._jobs
     
-
+    async def suspend(self,jid):
+        await self.a_put('suspend',jid)
+    
+    async def unsuspend(self,jid):
+        await self.a_put('unsuspend',jid)
+    
+    async def delete(self,jid):
+        await self.a_put('delete',jid)
+    
 async def main():
     base = 'coap://piccolo-thing2'
 
