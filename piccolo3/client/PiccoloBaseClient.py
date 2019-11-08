@@ -27,21 +27,18 @@ import aiocoap
 import json
 import logging
 import os.path
-
-class PiccoloProtocol:
-    __protocol = None
-
-    async def protocol(self):
-        if self.__protocol is None:
-            self.__protocol = await aiocoap.Context.create_client_context()
-        return self.__protocol
+import time
 
 class PiccoloClientComponent:
     NAME = 'component'
+    NRETRIES = 3600
+
+    __protocol = None
+    __lock = asyncio.Lock()
     
     def __init__(self,baseurl,path=None):
         self._log = logging.getLogger(self.logName)
-        self.protocol = PiccoloProtocol()
+        self._protocol = None
         self._baseurl = baseurl
         self._path = path
         self.log.debug("initialised")
@@ -79,10 +76,45 @@ class PiccoloClientComponent:
         else:
             raise RuntimeError('{}: {}'.format(
                 response.code,p))
-    
-    async def a_get(self,resource):
-        protocol = await self.protocol.protocol()
 
+    async def get_protocol(self):
+        if self.__protocol is None:
+            async with self.__lock:
+                if self.__protocol is None:
+                    self.log.info('create client context')
+                    # try talking to server
+                    for i in range(self.NRETRIES):
+                        if i==1:
+                            self.log.warning('waiting for connection')
+                        try:
+                            self.__protocol = await aiocoap.Context.create_client_context()
+                            request = aiocoap.Message(code=aiocoap.GET,uri=self.uri(resource='/control/status'))
+                            p_request = self.__protocol.request(request)
+                            response = await p_request.response
+                            break
+                        except ConnectionRefusedError as e:
+                            if i%10 == 0:
+                                self.log.error(e)
+                            self.__protocol.shutdown()
+                            await asyncio.sleep(1)
+                            continue
+                    else:
+                        raise RuntimeError('5.00: failed after {} retries'.format(self.NRETRIES))
+                else:
+                    self.log.debug('client context appeared')
+        return self.__protocol
+
+    async def shutdown(self):
+        async with self.__lock:
+            if self.__protocol is not None:
+                self.log.info('shutting down client context')
+                await self.__protocol.shutdown()
+                self.__protocol = None
+            else:
+                self.log.debug('client context already disappeared')
+                
+    async def a_get(self,resource):
+        protocol = await self.get_protocol()
         request = aiocoap.Message(code=aiocoap.GET,uri=self.uri(resource))
         p_request = protocol.request(request)
 
@@ -92,7 +124,7 @@ class PiccoloClientComponent:
     async def a_put(self,resource,*args,**kwargs):
         payload = json.dumps([args,kwargs]).encode()
         
-        protocol = await self.protocol.protocol()
+        protocol = await self.get_protocol()
         request = aiocoap.Message(code=aiocoap.PUT,
                                   payload = payload,
                                   uri=self.uri(resource))
@@ -100,7 +132,7 @@ class PiccoloClientComponent:
         return self.handle_response(response)
 
     async def a_observe(self,resource):
-        protocol = await self.protocol.protocol()
+        protocol = await self.get_protocol()
 
         request = aiocoap.Message(code=aiocoap.GET,uri=self.uri(resource),observe=0)
 
