@@ -77,6 +77,10 @@ class PiccoloClientComponent:
             raise RuntimeError('{}: {}'.format(
                 response.code,p))
 
+    @property
+    def isConnected(self):
+        return self.__protocol is not None
+        
     async def get_protocol(self):
         if self.__protocol is None:
             async with self.__lock:

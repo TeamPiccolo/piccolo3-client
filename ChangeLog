@@ -1,3 +1,7 @@
+2019-11-12 Magnus Hagdorn
+ * piccolo3/client/PiccoloBaseClient.py: add property to check whether client
+   is connected
+
 2019-11-08 Magnus Hagdorn
  * piccolo3/client/PiccoloBaseClient.py: when getting protocol to talk to
    piccolo server test connection, retry until it works
