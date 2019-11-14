@@ -1,3 +1,6 @@
+2019-11-14 Mangus Hagdorn
+ * piccolo-example.py: add simple example script
+
 2019-11-14 Magnus Hagdorn
  * piccolo3/client/PiccoloBaseClient.py: add method to create tasks
  * piccolo3/client/Piccolo.py: use method to create tasks
