@@ -44,14 +44,13 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         self._status = None
 
         self._callbacks = []
-        
-        loop = asyncio.get_event_loop()
-        loop.create_task(self._update_status())
-        loop.create_task(self._update_min_time())
-        loop.create_task(self._update_max_time())
+
+        self.add_task(self._update_status())
+        self.add_task(self._update_min_time())
+        self.add_task(self._update_max_time())
         for c in self.channels:
-            loop.create_task(self._update_current_time(c))
-            loop.create_task(self._update_auto_status(c))
+            self.add_task(self._update_current_time(c))
+            self.add_task(self._update_auto_status(c))
             
     @property
     def channels(self):
@@ -126,7 +125,7 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
     def max_time(self):
         return self._max_time
         
-    def get_current_time(self,channel):
+    def current_time(self,channel):
         return self._current_time[channel]
     
 class PiccoloSpectrometers(PiccoloClientComponent):
@@ -141,8 +140,7 @@ class PiccoloSpectrometers(PiccoloClientComponent):
         self._channels = None
         self._callbacks = []
 
-        loop = asyncio.get_event_loop()
-        loop.create_task(self._init_spectrometers())
+        self.add_task(self._init_spectrometers())
 
     async def _init_spectrometers(self):
         channels = await self.get_channels()
@@ -186,13 +184,13 @@ async def main():
     base = 'coap://piccolo-thing2'
 
     spectrometers = PiccoloSpectrometers(base)
-
+    await asyncio.sleep(1)
     for i in range(10):
 
         for s in spectrometers:
             print (spectrometers[s].name,spectrometers[s].min_time,spectrometers[s].max_time,spectrometers[s].channels)
             for channel in spectrometers[s].channels:
-                print (spectrometers[s].name,channel,spectrometers[s].get_current_time(channel))
+                print (spectrometers[s].name,channel,spectrometers[s].current_time(channel))
             print (await spectrometers[s].get_status())
 
         print('\n')

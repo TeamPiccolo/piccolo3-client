@@ -40,12 +40,11 @@ class PiccoloControl(PiccoloClientComponent):
         self._target = None
         
         self._callbacks = []
-        loop = asyncio.get_event_loop()
-        loop.create_task(self._update_status())
-        loop.create_task(self._update_numSequences())
-        loop.create_task(self._update_autointegration())
-        loop.create_task(self._update_delay())
-        loop.create_task(self._update_target())
+        self.add_task(self._update_status())
+        self.add_task(self._update_numSequences())
+        self.add_task(self._update_autointegration())
+        self.add_task(self._update_delay())
+        self.add_task(self._update_target())
 
     def register_callback(self,cb):
         self._callbacks.append(cb)

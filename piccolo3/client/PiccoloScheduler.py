@@ -42,11 +42,10 @@ class PiccoloScheduler(PiccoloClientComponent):
         self._jobs = []
         
         self._callbacks = []
-        loop = asyncio.get_event_loop()
-        loop.create_task(self._update_quietTimeEnabled())
-        loop.create_task(self._update_quietStart())
-        loop.create_task(self._update_quietEnd())
-        loop.create_task(self._update_jobs())
+        self.add_task(self._update_quietTimeEnabled())
+        self.add_task(self._update_quietStart())
+        self.add_task(self._update_quietEnd())
+        self.add_task(self._update_jobs())
 
         self._TIME_FORMAT = "%H:%M:%S%z"
         

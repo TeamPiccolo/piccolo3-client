@@ -41,6 +41,7 @@ class PiccoloClientComponent:
         self._protocol = None
         self._baseurl = baseurl
         self._path = path
+        self._tasks = []
         self.log.debug("initialised")
 
     @property
@@ -68,6 +69,11 @@ class PiccoloClientComponent:
         """get the logger"""
         return self._log
 
+    def add_task(self,task):
+        loop = asyncio.get_event_loop()
+        t = loop.create_task(task)
+        self._tasks.append(t)
+    
     def handle_response(self,response):
         p = response.payload.decode()
         if response.code.is_successful():

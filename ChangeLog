@@ -1,3 +1,10 @@
+2019-11-14 Magnus Hagdorn
+ * piccolo3/client/PiccoloBaseClient.py: add method to create tasks
+ * piccolo3/client/Piccolo.py: use method to create tasks
+ * piccolo3/client/PiccoloDataDir.py: ditto
+ * piccolo3/client/PiccoloScheduler.py: ditto
+ * piccolo3/client/PiccoloSpectrometer.py: ditto
+
 2019-11-12 Magnus Hagdorn
  * piccolo3/client/PiccoloBaseClient.py: add property to check whether client
    is connected

@@ -64,9 +64,9 @@ class PiccoloDataDir(PiccoloClientComponent):
         self._runs = {}
 
         self._callbacks = []
-        loop = asyncio.get_event_loop()
-        loop.create_task(self._init_runs())
-        loop.create_task(self._update_current_run())
+
+        self.add_task(self._init_runs())
+        self.add_task(self._update_current_run())
 
     def register_callback(self,cb):
         self._callbacks.append(cb)
@@ -84,7 +84,7 @@ class PiccoloDataDir(PiccoloClientComponent):
             for cb in self._callbacks:
                 await cb(json.dumps({'current_run':r}))
             self._current_run = self._runs[r]
-                
+
     async def get_mount(self):
         r = await self.a_get('mount')
         return r
