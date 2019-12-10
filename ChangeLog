@@ -1,4 +1,9 @@
 2019-12-10 Magnus Hagdorn
+ * setup.py: install new program
+ * piccolo3/ptriggered.py: add program to wait for trigger signal and start
+   recording when received
+
+2019-12-10 Magnus Hagdorn
  * piccolo3/client/__init__.py: move PiccoloSystem class to separate module
  * piccolo3/client/PiccoloSystem.py: moved from class from __init__.py
 

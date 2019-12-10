@@ -33,6 +33,7 @@ setup(
         'console_scripts': [
             'piccolo3-record = piccolo3.precord:main',
             'piccolo3-integration-times = piccolo3.ptimes:main',
+            'piccolo3-triggered = piccolo3.ptriggered:main',
             ],
     },
 
