@@ -16,9 +16,9 @@
 # along with piccolo3-client.  If not, see <http://www.gnu.org/licenses/>.
 
 from piccolo3 import client as piccolo
+from piccolo3.common import piccoloLogging
 import datetime
 from dateutil.tz import tzlocal
-import argparse
 import logging
 import time
 import sys
@@ -26,21 +26,18 @@ import asyncio
 
 TODAY=str(datetime.datetime.now().date())
 
+async def print_spectrometers(pclient):
+    for s in await pclient.spec.get_spectrometers():
+        print (s)
+    
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-u','--piccolo-url',metavar='URL',default='coap://localhost',help='set the URL of the piccolo server, default coap://localhost')
-    parser.add_argument('--debug', action='store_true',default=False,help="enable debugging output")
-    parser.add_argument('-r','--run',metavar='RUN',default=TODAY,help='name of the run, default = %s'%TODAY)
-    parser.add_argument('-a','--auto',metavar='A',type=int,default=-1,help="autointegrate, when A=0 only before the first sequence, if A>0 autointegrate every Ath sequence")
-    parser.add_argument('-n','--number-sequences',metavar='N',type=int,default=1,help="set the number of sequences, default=1")
-    parser.add_argument('-d','--delay',type=float,metavar='D',default=0.,help="delay between measurements in m, default=0")
-    parser.add_argument('--start',metavar='HH:MM',help="start recording at HH:MM in local time zone")
-    parser.add_argument('--interval',type=float,help="recrod a new batch every INTERVAL seconds")
-    parser.add_argument('--stop',metavar='HH:MM',help="stop recording after HH:MM in local time zone")
-    parser.add_argument('-v','--version',action='store_true',default=False,help="print version and exit")
-
+    parser = piccolo.PiccoloArgumentParser()
+    parser.addRunOptions()
+    parser.addSchedulerOptions()
+    
     args = parser.parse_args()
-
+    piccoloLogging(debug=args.debug)
+    
     if args.start:
         start = datetime.datetime.combine(
             datetime.datetime.now(),
@@ -61,13 +58,17 @@ def main():
         
     pclient = piccolo.PiccoloSystem(args.piccolo_url)
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(pclient.control.record_sequence(args.run,
-                                                            nsequence=args.number_sequences,
-                                                            auto=args.auto,
-                                                            delay=args.delay,
-                                                            at_time=start,
-                                                            interval=args.interval,
-                                                            end_time=stop ))
+    if args.list_spectrometers:
+        loop.run_until_complete(print_spectrometers(pclient))
+    else:        
+        loop.run_until_complete(pclient.control.record_sequence(args.run,
+                                                                nsequence=args.number_sequences,
+                                                                auto=args.auto,
+                                                                delay=args.delay,
+                                                                at_time=start,
+                                                                interval=args.interval,
+                                                                end_time=stop ))
+    pclient.shutdown()
 
 
 if __name__ == '__main__':

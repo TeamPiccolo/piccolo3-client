@@ -1,4 +1,9 @@
 2019-12-10 Magnus Hagdorn
+ * piccolo3/precord.py: add logging; use CLI option class to handle command
+   line options
+ * piccolo3/client/PiccoloClientCfg.py: new module for handling CLI options
+
+2019-12-10 Magnus Hagdorn
  * piccolo3/client/PiccoloBaseClient.py: introduce new base class that just
    handles the logging; add method to cancel running tasks; handle
    cancelled observations
