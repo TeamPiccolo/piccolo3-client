@@ -1,3 +1,10 @@
+2019-12-10 Magnus Hagdorn
+ * piccolo3/client/PiccoloBaseClient.py: introduce new base class that just
+   handles the logging; add method to cancel running tasks; handle
+   cancelled observations
+ * piccolo3/client/__init__.py: add logging to PiccoloSystem class; add 
+   method to shutdown piccolo system
+
 2019-12-09 Magnus Hagdorn
  * piccolo3/client/PiccoloBaseClient.py: turn property into co-routine
 

@@ -20,7 +20,7 @@
 
 """
 
-__all__ = ['PiccoloClientComponent','PiccoloNamedClientComponent']
+__all__ = ['PiccoloClientBase','PiccoloClientComponent','PiccoloNamedClientComponent']
 
 import asyncio
 import aiocoap
@@ -29,15 +29,32 @@ import logging
 import os.path
 import time
 
-class PiccoloClientComponent:
+class PiccoloClientBase:
     NAME = 'component'
+
+    def __init__(self):
+        self._log = logging.getLogger(self.logName)
+        
+    @property
+    def logName(self):
+        n = 'piccolo.client'
+        if self.NAME is not None:
+            n += '.{0}'.format(self.NAME)
+        return n
+    @property
+    def log(self):
+        """get the logger"""
+        return self._log
+   
+
+class PiccoloClientComponent(PiccoloClientBase):
     NRETRIES = 3600
 
     __protocol = None
     __lock = asyncio.Lock()
     
     def __init__(self,baseurl,path=None):
-        self._log = logging.getLogger(self.logName)
+        super().__init__()
         self._protocol = None
         self._baseurl = baseurl
         self._path = path
@@ -61,19 +78,17 @@ class PiccoloClientComponent:
                 return self.baseurl+resource
             else:
                 return self.baseurl+os.path.join(self.path,resource)
-    @property
-    def logName(self):
-        return 'piccolo.client.{0}'.format(self.NAME)
-    @property
-    def log(self):
-        """get the logger"""
-        return self._log
 
     def add_task(self,task):
         loop = asyncio.get_event_loop()
         t = loop.create_task(task)
         self._tasks.append(t)
-    
+
+    def shutdown_tasks(self):
+        self.log.debug('shutting down {} tasks'.format(len(self._tasks)))
+        for t in self._tasks:
+            t.cancel()
+        
     def handle_response(self,response):
         p = response.payload.decode()
         if response.code.is_successful():
@@ -150,8 +165,13 @@ class PiccoloClientComponent:
         r = await pr.response
         yield self.handle_response(r)
 
-        async for r in pr.observation:
-            yield self.handle_response(r)
+        try:
+            async for r in pr.observation:
+                yield self.handle_response(r)
+        except asyncio.CancelledError:
+            self.log.debug('stopping observation {}'.format(resource))
+            pr.observation.cancel()
+            raise
         
     def get(self,resource):
         return asyncio.get_event_loop().run_until_complete(self.a_get(resource))
