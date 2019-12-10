@@ -1,4 +1,8 @@
 2019-12-10 Magnus Hagdorn
+ * setup.py: install new program
+ * piccolo3/ptimes.py: add program to list/modify integration times
+
+2019-12-10 Magnus Hagdorn
  * piccolo3/precord.py: add logging; use CLI option class to handle command
    line options
  * piccolo3/client/PiccoloClientCfg.py: new module for handling CLI options
