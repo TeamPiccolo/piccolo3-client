@@ -36,6 +36,8 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
 
         super().__init__(baseurl,name)
 
+        self._haveTEC = None
+        
         self._channels = channels
         self._min_time = None
         self._max_time = None
@@ -45,6 +47,7 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
 
         self._callbacks = []
 
+        self.add_task(self._get_haveTEC())
         self.add_task(self._update_status())
         self.add_task(self._update_min_time())
         self.add_task(self._update_max_time())
@@ -58,6 +61,19 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
 
     def register_callback(self,cb):
         self._callbacks.append(cb)
+
+    async def _get_haveTEC(self):
+        while self._haveTEC is None:
+            self._haveTEC = await self.a_get('haveTEC')
+    @property
+    def haveTEC(self):
+        if self._haveTEC is None:
+            raise Warning('unknown whether spectrometer has TEC')
+        return self._haveTEC
+    async def current_temperature(self):
+        if not self._haveTEC:
+            raise RuntimeError('no TEC present')
+        return await self.a_get('current_temperature')
         
     async def _update_min_time(self):
         u = 'min_time'
@@ -181,7 +197,7 @@ class PiccoloSpectrometers(PiccoloClientComponent):
     
 
 async def main():
-    base = 'coap://piccolo-thing2'
+    base = 'coap://localhost'
 
     spectrometers = PiccoloSpectrometers(base)
     await asyncio.sleep(1)
@@ -193,9 +209,15 @@ async def main():
                 print (spectrometers[s].name,channel,spectrometers[s].current_time(channel))
             print (await spectrometers[s].get_status())
 
+            print (s, spectrometers[s].haveTEC)
+            if spectrometers[s].haveTEC:
+                print (s,await spectrometers[s].current_temperature())
+            
         print('\n')
             
         await asyncio.sleep(1)
+    spectrometers.shutdown_tasks()
+    await asyncio.sleep(5)
 
 if __name__ == '__main__':
     import time
