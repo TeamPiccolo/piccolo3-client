@@ -37,6 +37,8 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         super().__init__(baseurl,name)
 
         self._haveTEC = None
+        self._TECenabled = None
+        self._targetTemp = None
         
         self._channels = channels
         self._min_time = None
@@ -48,6 +50,8 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         self._callbacks = []
 
         self.add_task(self._get_haveTEC())
+        self.add_task(self._update_TECenabled())
+        self.add_task(self._uptate_target_temperature())
         self.add_task(self._update_status())
         self.add_task(self._update_min_time())
         self.add_task(self._update_max_time())
@@ -74,6 +78,30 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         if not self._haveTEC:
             raise RuntimeError('no TEC present')
         return await self.a_get('current_temperature')
+
+    async def _update_TECenabled(self):
+        u = 'TECenabled'
+        async for s in self.a_observe(u):
+           for cb in self._callbacks:
+               await cb(json.dumps((self.name,u,s)))
+           self._TECenabled = s
+    async def get_TECenabled(self):
+        self._TECenabled = await self.a_get('TECenabled')
+        return self._TECenabled
+    async def set_TECenabled(self,s):
+        await self.a_put('TECenabled',s)
+
+    async def _uptate_target_temperature(self):
+        u = 'target_temperature'
+        async for s in self.a_observe(u):
+           for cb in self._callbacks:
+               await cb(json.dumps((self.name,u,t)))
+           self._targetTemp = t
+    async def get_target_temperature(self):
+        self._targetTemp = await self.a_get('target_temperature')
+        return self._targetTemp
+    async def set_target_temperature(self,t):
+        await self.a_put('target_temperature',t)
         
     async def _update_min_time(self):
         u = 'min_time'
@@ -211,7 +239,10 @@ async def main():
 
             print (s, spectrometers[s].haveTEC)
             if spectrometers[s].haveTEC:
-                print (s,await spectrometers[s].current_temperature())
+                print (s,
+                       await spectrometers[s].get_TECenabled(),
+                       await spectrometers[s].get_target_temperature(),
+                       await spectrometers[s].current_temperature())
             
         print('\n')
             
