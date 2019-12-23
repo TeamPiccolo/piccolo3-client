@@ -53,7 +53,7 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
 
         self.add_task(self._get_haveTEC())
         self.add_task(self._update_TECenabled())
-        self.add_task(self._uptate_target_temperature())
+        self.add_task(self._update_target_temperature())
         self.add_task(self._update_status())
         self.add_task(self._update_min_time())
         self.add_task(self._update_max_time())
@@ -91,28 +91,34 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
     async def _update_TECenabled(self):
         u = 'TECenabled'
         async for s in self.a_observe(u):
-           for cb in self._callbacks:
-               await cb(json.dumps((self.name,u,s)))
-           self._TECenabled = s
+            for cb in self._callbacks:
+                await cb(json.dumps((self.name,u,s)))
+            self._TECenabled = s
+            if self._currTempTime is not None:
+                self._currTempTime -= 20.
     async def get_TECenabled(self):
         self._TECenabled = await self.a_get('TECenabled')
         return self._TECenabled
     async def set_TECenabled(self,s):
         await self.a_put('TECenabled',s)
-        self._currTempTime -= 20.
+        if self._currTempTime is not None:
+            self._currTempTime -= 20.
 
-    async def _uptate_target_temperature(self):
+    async def _update_target_temperature(self):
         u = 'target_temperature'
         async for s in self.a_observe(u):
-           for cb in self._callbacks:
-               await cb(json.dumps((self.name,u,t)))
-           self._targetTemp = t
+            for cb in self._callbacks:
+                await cb(json.dumps((self.name,u,s)))
+            self._targetTemp = s
+            if self._currTempTime is not None:
+                self._currTempTime -= 20.
     async def get_target_temperature(self):
         self._targetTemp = await self.a_get('target_temperature')
         return self._targetTemp
     async def set_target_temperature(self,t):
         await self.a_put('target_temperature',float(t))
-        self._currTempTime -= 20.
+        if self._currTempTime is not None:
+            self._currTempTime -= 20.
         
     async def _update_min_time(self):
         u = 'min_time'
