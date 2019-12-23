@@ -39,6 +39,8 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         self._haveTEC = None
         self._TECenabled = None
         self._targetTemp = None
+        self._currTemp = None
+        self._currTempTime = None
         
         self._channels = channels
         self._min_time = None
@@ -77,7 +79,14 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
     async def current_temperature(self):
         if not self._haveTEC:
             raise RuntimeError('no TEC present')
-        return await self.a_get('current_temperature')
+        ts = time.time()
+        if self._currTemp is None or ts-self._currTempTime > 10:
+            try:
+                self._currTemp = await self.a_get('current_temperature')
+                self._currTempTime = ts
+            except Exception as e:
+                self.log.warning(str(e))
+        return self._currTemp
 
     async def _update_TECenabled(self):
         u = 'TECenabled'
@@ -90,6 +99,7 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         return self._TECenabled
     async def set_TECenabled(self,s):
         await self.a_put('TECenabled',s)
+        self._currTempTime -= 20.
 
     async def _uptate_target_temperature(self):
         u = 'target_temperature'
@@ -101,7 +111,8 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         self._targetTemp = await self.a_get('target_temperature')
         return self._targetTemp
     async def set_target_temperature(self,t):
-        await self.a_put('target_temperature',t)
+        await self.a_put('target_temperature',float(t))
+        self._currTempTime -= 20.
         
     async def _update_min_time(self):
         u = 'min_time'
