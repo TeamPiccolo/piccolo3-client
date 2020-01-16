@@ -1,3 +1,6 @@
+2020-01-16 Magnus Hagdorn
+ * piccolo3/ptriggered.py: don't make waiting for trigger interruptible
+
 2019-12-23 Magnus Hagdorn
  * piccolo3/client/PiccoloSpectrometer.py: fix spelling and minor bug fix
 

@@ -42,16 +42,15 @@ async def trigger_loop(pclient,run,nsequence,auto,delay,simulate_trigger):
         if simulate_trigger:
             await asyncio.sleep(1)
         else:
-            while True:
-                if trigger.value:
-                    break
-                await asyncio.sleep(0.1)
+            while not trigger.value:
+                pass
         log.debug('got trigger')
 
         if await pclient.control.get_status() == 'idle':
             log.info('start recording')
             await pclient.control.record_sequence(run,nsequence=nsequence,auto=auto,delay=delay)
-
+        else:
+            log.debug('piccolo is busy')
         await asyncio.sleep(0.1)
         # reset trigger board
         reset.on()
