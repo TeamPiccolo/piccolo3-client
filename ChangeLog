@@ -1,3 +1,15 @@
+2020-01-17 Magnus Hagdorn
+ * piccolo3/client/PiccoloClientCfg.py: no defaults for run options; add
+   special string to run argument to select today's date
+ * piccolo3/client/PiccoloSpectrometer.py: add method to pretty print list of
+   spectrometers and their current state
+ * piccolo3/precord.py: use new pprint method to print list of spectrometers;
+   add options to set integration times
+ * piccolo3/ptimes.py: move print_spectrometers function to
+   PiccoloSpectrometers class and use it
+ * piccolo3/ptriggered.py: remove option to set integration times; use pretty
+   print list of spectrometers
+
 2020-01-16 Magnus Hagdorn
  * piccolo3/ptriggered.py: don't make waiting for trigger interruptible
 

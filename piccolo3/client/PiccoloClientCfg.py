@@ -56,14 +56,17 @@ class PiccoloArgumentParser:
         return self._parser.add_argument_group(*args,**keyargs)
 
     def parse_args(self,*args,**keyargs):
-        return self._parser.parse_args(*args,**keyargs)
+        args = self._parser.parse_args(*args,**keyargs)
+        if hasattr(args,'run') and args.run == 'TODAY':
+            args.run = TODAY
+        return args
         
     def addRunOptions(self):
         group = self.add_argument_group('run options')
-        group.add_argument('-r','--run',metavar='RUN',default=TODAY,help='name of the run, default = %s'%TODAY)
-        group.add_argument('-a','--auto',metavar='A',type=int,default=-1,help="autointegrate, when A=0 only before the first sequence, if A>0 autointegrate every Ath sequence")
-        group.add_argument('-n','--number-sequences',metavar='N',type=int,default=1,help="set the number of sequences, default=1")
-        group.add_argument('-d','--delay',type=float,metavar='D',default=0.,help="delay between measurements in ms, default=0")
+        group.add_argument('-r','--run',metavar='RUN',help='name of the run, use the string TODAY to set the run name to today\'s date')
+        group.add_argument('-a','--auto',metavar='A',type=int,default=None,help="autointegrate, when A=-1 disable autointegration, when A=0 only before the first sequence, if A>0 autointegrate every Ath sequence")
+        group.add_argument('-n','--number-sequences',metavar='N',type=int,default=None,help="set the number of sequences")
+        group.add_argument('-d','--delay',type=float,metavar='D',default=None,help="delay between measurements in ms")
 
     def addIntegrationTimeOptions(self):
         group = self.add_argument_group('integration time options')
@@ -89,4 +92,4 @@ if __name__ == '__main__':
     parser.addSchedulerOptions()
     parser.addIntegrationTimeOptions()
     args = parser.parse_args()
-
+    print (args)

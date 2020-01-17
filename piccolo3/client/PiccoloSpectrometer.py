@@ -226,7 +226,35 @@ class PiccoloSpectrometers(PiccoloClientComponent):
         if self._channels is None:
             self._channels = await self.a_get('channels')
         return self._channels
-            
+
+    async def pprint(self):
+        """pretty print list of spectrometers and current times"""
+        channels = await self.get_channels()
+
+        data = []
+        headers = ['','min'] + channels + ['max','status']
+        for s in await self.get_spectrometers():
+            d = [s]
+            d.append(str(await self[s].get_min_time()))
+            for c in channels:
+                d.append(str(await self[s].get_current_time(c)))
+
+            d.append(str(await self[s].get_max_time()))
+            d.append(self[s].status)
+            data.append(d)
+
+        # figure out column widths
+        cols = [0]*len(headers)
+        for d in [headers] + data:
+            for i in range(len(d)):
+                cols[i] = max(cols[i],len(d[i]))
+        fmt = '{:<%d}'%cols[0]
+        for c in cols[1:-1]:
+            fmt += ' | {:>%d}'%c
+        fmt += ' | {:<%d}'%cols[-1]
+        for d in [headers] + data:
+            print (fmt.format(*d))
+    
     # implement methods so object can act as a read-only dictionary
     def keys(self):
         return self._spectrometers.keys()

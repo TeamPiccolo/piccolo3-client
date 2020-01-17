@@ -17,6 +17,7 @@
 
 from piccolo3 import client as piccolo
 from piccolo3.common import piccoloLogging
+from .ptimes import setIntegrationTimes
 import datetime
 from dateutil.tz import tzlocal
 import logging
@@ -25,14 +26,11 @@ import sys
 import asyncio
 
 TODAY=str(datetime.datetime.now().date())
-
-async def print_spectrometers(pclient):
-    for s in await pclient.spec.get_spectrometers():
-        print (s)
     
 def main():
     parser = piccolo.PiccoloArgumentParser()
     parser.addRunOptions()
+    parser.addIntegrationTimeOptions()
     parser.addSchedulerOptions()
     
     args = parser.parse_args()
@@ -59,8 +57,12 @@ def main():
     pclient = piccolo.PiccoloSystem(args.piccolo_url)
     loop = asyncio.get_event_loop()
     if args.list_spectrometers:
-        loop.run_until_complete(print_spectrometers(pclient))
-    else:        
+        loop.run_until_complete(pclient.spec.pprint())
+    else:
+        times = {}
+        for d in ['upwelling','downwelling','minimal','maximal']:
+            times[d] = getattr(args,d)
+        loop.run_until_complete(setIntegrationTimes(pclient,times))
         loop.run_until_complete(pclient.control.record_sequence(args.run,
                                                                 nsequence=args.number_sequences,
                                                                 auto=args.auto,

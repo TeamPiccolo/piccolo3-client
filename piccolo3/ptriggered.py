@@ -17,7 +17,6 @@
 
 from piccolo3 import client as piccolo
 from piccolo3.common import piccoloLogging
-from .ptimes import setIntegrationTimes, print_spectrometers
 import logging
 import signal
 import asyncio
@@ -61,7 +60,6 @@ def main():
     parser = piccolo.PiccoloArgumentParser()
     parser.add_argument('-s','--simulate-trigger',action='store_true',default=False,help='trigger every 1 second, useful for debugging')
     parser.addRunOptions()
-    parser.addIntegrationTimeOptions()
 
     args = parser.parse_args()
 
@@ -87,12 +85,8 @@ def main():
     
     loop = asyncio.get_event_loop()
     if args.list_spectrometers:
-        loop.run_until_complete(print_spectrometers(pclient))
+        loop.run_until_complete(pclient.spec.pprint())
     else:
-        times = {}
-        for d in ['upwelling','downwelling','minimal','maximal']:
-            times[d] = getattr(args,d)
-        loop.run_until_complete(setIntegrationTimes(pclient,times))        
         loop.run_until_complete(trigger_loop(pclient,args.run,args.number_sequences,args.auto,args.delay,args.simulate_trigger))
 
     pclient.shutdown()

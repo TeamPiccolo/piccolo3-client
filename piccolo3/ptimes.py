@@ -18,33 +18,6 @@
 from piccolo3 import client as piccolo
 from piccolo3.common import piccoloLogging
 import asyncio
-
-async def print_spectrometers(pclient):
-    channels = await pclient.spec.get_channels()
-
-    data = []
-    headers = ['','min'] + channels + ['max','status']
-    for s in await pclient.spec.get_spectrometers():
-        d = [s]
-        d.append(str(await pclient.spec[s].get_min_time()))
-        for c in channels:
-            d.append(str(await pclient.spec[s].get_current_time(c)))
-        
-        d.append(str(await pclient.spec[s].get_max_time()))
-        d.append(pclient.spec[s].status)
-        data.append(d)
-
-    # figure out column widths
-    cols = [0]*len(headers)
-    for d in [headers] + data:
-        for i in range(len(d)):
-            cols[i] = max(cols[i],len(d[i]))
-    fmt = '{:<%d}'%cols[0]
-    for c in cols[1:-1]:
-        fmt += ' | {:>%d}'%c
-    fmt += ' | {:<%d}'%cols[-1]
-    for d in [headers] + data:
-        print (fmt.format(*d))
     
 async def setIntegrationTimes(pclient,times):
     specs = await pclient.spec.get_spectrometers()
@@ -79,7 +52,7 @@ def main():
     pclient = piccolo.PiccoloSystem(args.piccolo_url)
     loop = asyncio.get_event_loop()
     if args.list_spectrometers:
-        loop.run_until_complete(print_spectrometers(pclient))
+        loop.run_until_complete(pclient.spec.pprint())
     else:
         times = {}
         for d in ['upwelling','downwelling','minimal','maximal']:
