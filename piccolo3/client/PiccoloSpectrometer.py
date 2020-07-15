@@ -23,6 +23,7 @@
 __all__ = ['PiccoloSpectrometers']
 
 from .PiccoloBaseClient import *
+from piccolo3.common import PiccoloSpectrometerStatus
 import asyncio
 
 import os.path
@@ -171,10 +172,10 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         async for t in self.a_observe(u):
            for cb in self._callbacks:
                await cb(json.dumps((self.name,u,t)))
-           self._status = t
+           self._status = PiccoloSpectrometerStatus(t)
     async def get_status(self):
         s = await self.a_get('status')
-        return s
+        return PiccoloSpectrometerStatus(s)
 
     @property
     def status(self):
@@ -240,7 +241,7 @@ class PiccoloSpectrometers(PiccoloClientComponent):
                 d.append(str(await self[s].get_current_time(c)))
 
             d.append(str(await self[s].get_max_time()))
-            d.append(self[s].status)
+            d.append(self[s].status.name)
             data.append(d)
 
         # figure out column widths
