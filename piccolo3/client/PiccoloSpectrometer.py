@@ -69,6 +69,15 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
     def register_callback(self,cb):
         self._callbacks.append(cb)
 
+    async def connect(self):
+        results = await self.a_get('connect')
+        if results != 'ok':
+            self.log.error(results)
+    async def disconnect(self):
+        results = await self.a_get('disconnect')
+        if results != 'ok':
+            self.log.error(results)
+
     async def _get_haveTEC(self):
         while self._haveTEC is None:
             self._haveTEC = await self.a_get('haveTEC')
