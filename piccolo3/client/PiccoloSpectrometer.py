@@ -72,6 +72,7 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
     async def _get_haveTEC(self):
         while self._haveTEC is None:
             self._haveTEC = await self.a_get('haveTEC')
+            await asyncio.sleep(1)
     @property
     def haveTEC(self):
         if self._haveTEC is None:
