@@ -77,6 +77,14 @@ class PiccoloSpectrometer(PiccoloNamedClientComponent):
         results = await self.a_get('disconnect')
         if results != 'ok':
             self.log.error(results)
+    async def power_off(self):
+        results = await self.a_get('power_off')
+        if results != 'ok':
+            self.log.error(results)
+    async def power_on(self):
+        results = await self.a_get('power_on')
+        if results != 'ok':
+            self.log.error(results)
 
     async def _get_haveTEC(self):
         while self._haveTEC is None:
@@ -237,7 +245,25 @@ class PiccoloSpectrometers(PiccoloClientComponent):
         if self._channels is None:
             self._channels = await self.a_get('channels')
         return self._channels
+    
+    async def connect(self):
+        results = await self.a_get('connect')
+        if results != 'ok':
+            self.log.error(results)
+    async def disconnect(self):
+        results = await self.a_get('disconnect')
+        if results != 'ok':
+            self.log.error(results)
 
+    async def power_off(self):
+        results = await self.a_get('power_off')
+        if results != 'ok':
+            self.log.error(results)
+    async def power_on(self):
+        results = await self.a_get('power_on')
+        if results != 'ok':
+            self.log.error(results)
+    
     async def pprint(self):
         """pretty print list of spectrometers and current times"""
         channels = await self.get_channels()
