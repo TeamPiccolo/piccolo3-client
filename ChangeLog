@@ -1,3 +1,6 @@
+2020-11-09 Magnus Hagdorn
+ * piccolo3/client/Piccolo.py: add option to schedule power on/off
+
 2020-01-17 Magnus Hagdorn
  * piccolo3/client/PiccoloClientCfg.py: no defaults for run options; add
    special string to run argument to select today's date

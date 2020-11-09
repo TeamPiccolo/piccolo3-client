@@ -133,7 +133,29 @@ class PiccoloControl(PiccoloClientComponent):
         """
 
         await self.a_put('auto',target=target)
-        
+
+    async def power_off(self,at_time=None):
+        """power off spectrometers
+
+        :param at_time: the time at which the job should run or None
+        """
+
+        if at_time is not None:
+            at_time=str(at_time)
+
+        await self.a_put('power_off',at_time=at_time)
+
+    async def power_on(self,at_time=None):
+        """power on spectrometers
+
+        :param at_time: the time at which the job should run or None
+        """
+
+        if at_time is not None:
+            at_time=str(at_time)
+
+        await self.a_put('power_on',at_time=at_time)
+
     async def pause(self):
         """pause data acquisition"""
 
