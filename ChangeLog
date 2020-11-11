@@ -1,3 +1,7 @@
+2020-11-11 Magnus Hagdorn
+ * piccolo3/client/PiccoloScheduler.py: add options to enable power-off time and 
+   power off delay relative to quiet time
+
 2020-11-09 Magnus Hagdorn
  * piccolo3/client/Piccolo.py: add option to schedule power on/off
 

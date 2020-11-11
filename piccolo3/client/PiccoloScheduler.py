@@ -36,6 +36,8 @@ class PiccoloScheduler(PiccoloClientComponent):
         super().__init__(baseurl,path='/control/scheduler')
 
         self._quietTimeEnabled = None
+        self._powerOffEnabled = None
+        self._powerDelay = None
         self._quietStart = None
         self._quietEnd  = None
 
@@ -43,6 +45,8 @@ class PiccoloScheduler(PiccoloClientComponent):
         
         self._callbacks = []
         self.add_task(self._update_quietTimeEnabled())
+        self.add_task(self._update_powerOffEnabled())
+        self.add_task(self._update_powerDelay())
         self.add_task(self._update_quietStart())
         self.add_task(self._update_quietEnd())
         self.add_task(self._update_jobs())
@@ -69,6 +73,30 @@ class PiccoloScheduler(PiccoloClientComponent):
         return self._quietTimeEnabled
     async def set_quietTimeEnabled(self,n):
         await self.a_put('quietTimeEnabled',n)
+
+    async def _update_powerOffEnabled(self):
+        u = 'powerOffEnabled'
+        async for n in self.a_observe(u):
+            for cb in self._callbacks:
+                await cb(json.dumps({u:n}))
+            self._powerOffEnabled = n
+    async def get_powerOffEnabled(self):
+        self._powerOffEnabled = await self.a_get('powerOffEnabled')
+        return self._powerOffEnabled
+    async def set_powerOffEnabled(self,n):
+        await self.a_put('powerOffEnabled',n)
+
+    async def _update_powerDelay(self):
+        u = 'powerDelay'
+        async for n in self.a_observe(u):
+            for cb in self._callbacks:
+                await cb(json.dumps({u:n}))
+            self._powerDelay = n
+    async def get_powerDelay(self):
+        self._powerDelay = await self.a_get('powerDelay')
+        return self._powerDelay
+    async def set_powerDelay(self,n):
+        await self.a_put('powerDelay',n)
 
     @property
     def quietStart(self):
