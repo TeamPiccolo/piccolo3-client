@@ -1,3 +1,9 @@
+2020-11-12 Magnus Hagdorn
+ * coolbox.py: example coolbox script
+ * piccolo3/client/PiccoloCoolboxControl.py: add skeleton coolbox client
+   component
+ * piccolo3/client/PiccoloSystem.py: load coolbox client component
+
 2020-11-11 Magnus Hagdorn
  * piccolo3/client/PiccoloScheduler.py: add options to enable power-off time and 
    power off delay relative to quiet time

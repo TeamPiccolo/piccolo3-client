@@ -22,6 +22,7 @@ from .PiccoloDataDir import *
 from .PiccoloSysinfo import *
 from .PiccoloSpectrometer import *
 from .PiccoloScheduler import *
+from .PiccoloCoolboxControl import *
 from .PiccoloBaseClient import PiccoloClientBase
 
 import asyncio
@@ -33,6 +34,7 @@ class PiccoloSystem(PiccoloClientBase):
         self.control = PiccoloControl(baseurl)
         self.scheduler = PiccoloScheduler(baseurl)
         self.sys = PiccoloSysinfo(baseurl)
+        self.coolbox = PiccoloCoolboxControl(baseurl)
         self.spec = PiccoloSpectrometers(baseurl)
         self.data = PiccoloDataDir(baseurl)
 
@@ -50,6 +52,7 @@ class PiccoloSystem(PiccoloClientBase):
         self.control.shutdown_tasks()
         self.scheduler.shutdown_tasks()
         self.sys.shutdown_tasks()
+        self.coolbox.shutdown_tasks()
         self.spec.shutdown_tasks()
         self.data.shutdown_tasks()
 
