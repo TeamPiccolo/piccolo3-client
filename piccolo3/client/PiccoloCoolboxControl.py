@@ -116,6 +116,96 @@ class PiccoloVoltage(PiccoloNamedClientComponent):
         return self._current_voltage
 
 
+class PiccoloCurrent(PiccoloNamedClientComponent):
+    """manage current control on coolbox"""
+
+    NAME = "coolboxctrl"
+
+    def __init__(self, baseurl, name):
+
+        super().__init__(baseurl, name)
+
+        self._current_current = None
+
+        self._callbacks = []
+
+        self.add_task(self._get_current_current())
+
+    def register_callback(self, cb):
+        self._callbacks.append(cb)
+
+    async def _get_current_current(self):
+        u = 'current_current'
+        async for s in self.a_observe(u):
+            for cb in self._callbacks:
+                await cb(json.dumps((self.name, u, s)))
+            self._current_current = s
+
+    async def get_current_current(self):
+        self.log.info(self.uri('current_current'))
+        self._current_current = await self.a_get('current_current')
+        return self._current_current
+
+    @property
+    def current_current(self):
+        return self._current_current
+
+
+class PiccoloFan(PiccoloNamedClientComponent):
+    """manage fan control on coolbox"""
+
+    NAME = "coolboxctrl"
+
+    def __init__(self, baseurl, name):
+
+        super().__init__(baseurl, name)
+
+        self._target_fan_state = None
+        self._current_fan_state = None
+
+        self._callbacks = []
+
+        self.add_task(self._get_target_fan_state())
+        self.add_task(self._get_current_fan_state())
+
+    def register_callback(self, cb):
+        self._callbacks.append(cb)
+
+    async def _get_target_fan_state(self):
+        u = 'target_fan_state'
+        async for s in self.a_observe(u):
+            for cb in self._callbacks:
+                await cb(json.dumps((self.name, u, s)))
+            self._target_fan_state = s
+
+    async def get_target_fan_state(self):
+        self._fanState = await self.a_get('target_fan_state')
+        return self._fanState
+
+    async def set_target_fan_state(self, t):
+        await self.a_put('target_fan_state', float(t))
+
+    async def _get_current_fan_state(self):
+        u = 'current_fan_state'
+        async for s in self.a_observe(u):
+            for cb in self._callbacks:
+                await cb(json.dumps((self.name, u, s)))
+            self._current_fan_state = s
+
+    async def get_current_fan_state(self):
+        self.log.info(self.uri('current_fan_state'))
+        self._current_fan_state = await self.a_get('current_fan_state')
+        return self._current_fan_state
+
+    @property
+    def target_fan_state(self):
+        return self._target_fan_state
+
+    @property
+    def current_fan_state(self):
+        return self._current_fan_state
+
+
 class PiccoloCoolboxControl(PiccoloClientComponent):
     """manage temperature control on coolbox"""
 
