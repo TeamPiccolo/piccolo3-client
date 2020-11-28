@@ -24,8 +24,7 @@ async def main(pclient):
                   pclient.coolbox.fan_sensors[fan].target_fan_state)
         for volt in pclient.coolbox.voltage_sensors:
             print("main 4:", i, volt,
-                  pclient.coolbox.temperature_sensors[temp].current_voltage)
-        return
+                  pclient.coolbox.voltage_sensors[volt].current_voltage)
         for current in pclient.coolbox.current_sensors:
             print("main 5:", i, current,
                   pclient.coolbox.current_sensors[current].current_current)
