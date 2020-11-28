@@ -20,7 +20,8 @@
 
 """
 
-__all__ = ['PiccoloClientBase','PiccoloClientComponent','PiccoloNamedClientComponent']
+__all__ = ['PiccoloClientBase', 'PiccoloClientComponent',
+           'PiccoloNamedClientComponent']
 
 import asyncio
 import aiocoap
@@ -29,31 +30,33 @@ import logging
 import os.path
 import time
 
+
 class PiccoloClientBase:
     NAME = 'component'
 
     def __init__(self):
         self._log = logging.getLogger(self.logName)
-        
+
     @property
     def logName(self):
         n = 'piccolo.client'
         if self.NAME is not None:
             n += '.{0}'.format(self.NAME)
         return n
+
     @property
     def log(self):
         """get the logger"""
         return self._log
-   
+
 
 class PiccoloClientComponent(PiccoloClientBase):
     NRETRIES = 3600
 
     __protocol = None
     __lock = asyncio.Lock()
-    
-    def __init__(self,baseurl,path=None):
+
+    def __init__(self, baseurl, path=None):
         super().__init__()
         self._protocol = None
         self._baseurl = baseurl
@@ -64,22 +67,24 @@ class PiccoloClientComponent(PiccoloClientBase):
     @property
     def baseurl(self):
         return self._baseurl
+
     @property
     def path(self):
         if self._path is None:
             return '/'+self.NAME
         else:
             return self._path
-    def uri(self,resource=None):
+
+    def uri(self, resource=None):
         if resource is None:
             return self.baseurl+self.path
         else:
             if resource.startswith('/'):
                 return self.baseurl+resource
             else:
-                return self.baseurl+os.path.join(self.path,resource)
+                return self.baseurl+os.path.join(self.path, resource)
 
-    def add_task(self,task):
+    def add_task(self, task):
         loop = asyncio.get_event_loop()
         t = loop.create_task(task)
         self._tasks.append(t)
@@ -88,20 +93,20 @@ class PiccoloClientComponent(PiccoloClientBase):
         self.log.debug('shutting down {} tasks'.format(len(self._tasks)))
         for t in self._tasks:
             t.cancel()
-        
-    def handle_response(self,response):
+
+    def handle_response(self, response):
         p = response.payload.decode()
         if response.code.is_successful():
             if len(p) > 0:
                 return json.loads(response.payload.decode())
         else:
             raise RuntimeError('{}: {}'.format(
-                response.code,p))
+                response.code, p))
 
     async def isConnected(self):
         p = await self.get_protocol()
         return p is not None
-        
+
     async def get_protocol(self):
         if self.__protocol is None:
             async with self.__lock:
@@ -109,22 +114,24 @@ class PiccoloClientComponent(PiccoloClientBase):
                     self.log.info('create client context')
                     # try talking to server
                     for i in range(self.NRETRIES):
-                        if i==1:
+                        if i == 1:
                             self.log.warning('waiting for connection')
                         try:
                             self.__protocol = await aiocoap.Context.create_client_context()
-                            request = aiocoap.Message(code=aiocoap.GET,uri=self.uri(resource='/control/status'))
+                            request = aiocoap.Message(
+                                code=aiocoap.GET, uri=self.uri(resource='/control/status'))
                             p_request = self.__protocol.request(request)
                             response = await p_request.response
                             break
                         except ConnectionRefusedError as e:
-                            if i%10 == 0:
+                            if i % 10 == 0:
                                 self.log.error(e)
                             self.__protocol.shutdown()
                             await asyncio.sleep(1)
                             continue
                     else:
-                        raise RuntimeError('5.00: failed after {} retries'.format(self.NRETRIES))
+                        raise RuntimeError(
+                            '5.00: failed after {} retries'.format(self.NRETRIES))
                 else:
                     self.log.debug('client context appeared')
         return self.__protocol
@@ -137,29 +144,30 @@ class PiccoloClientComponent(PiccoloClientBase):
                 self.__protocol = None
             else:
                 self.log.debug('client context already disappeared')
-                
-    async def a_get(self,resource):
+
+    async def a_get(self, resource):
         protocol = await self.get_protocol()
-        request = aiocoap.Message(code=aiocoap.GET,uri=self.uri(resource))
+        request = aiocoap.Message(code=aiocoap.GET, uri=self.uri(resource))
         p_request = protocol.request(request)
 
         response = await p_request.response
         return self.handle_response(response)
-        
-    async def a_put(self,resource,*args,**kwargs):
-        payload = json.dumps([args,kwargs]).encode()
-        
+
+    async def a_put(self, resource, *args, **kwargs):
+        payload = json.dumps([args, kwargs]).encode()
+
         protocol = await self.get_protocol()
         request = aiocoap.Message(code=aiocoap.PUT,
-                                  payload = payload,
+                                  payload=payload,
                                   uri=self.uri(resource))
         response = await protocol.request(request).response
         return self.handle_response(response)
 
-    async def a_observe(self,resource):
+    async def a_observe(self, resource):
         protocol = await self.get_protocol()
 
-        request = aiocoap.Message(code=aiocoap.GET,uri=self.uri(resource),observe=0)
+        request = aiocoap.Message(
+            code=aiocoap.GET, uri=self.uri(resource), observe=0)
 
         pr = protocol.request(request)
         r = await pr.response
@@ -172,12 +180,13 @@ class PiccoloClientComponent(PiccoloClientBase):
             self.log.debug('stopping observation {}'.format(resource))
             pr.observation.cancel()
             raise
-        
-    def get(self,resource):
+
+    def get(self, resource):
         return asyncio.get_event_loop().run_until_complete(self.a_get(resource))
 
-    def put(self,resource,*args,**kwargs):
-        return asyncio.get_event_loop().run_until_complete(self.a_put(resource,*args,**kwargs))
+    def put(self, resource, *args, **kwargs):
+        return asyncio.get_event_loop().run_until_complete(self.a_put(resource, *args, **kwargs))
+
 
 class PiccoloNamedClientComponent(PiccoloClientComponent):
     """
@@ -186,14 +195,14 @@ class PiccoloNamedClientComponent(PiccoloClientComponent):
 
     NAME = 'named_component'
 
-    def __init__(self,baseurl,name,path=None):
+    def __init__(self, baseurl, name, path=None):
         """
         :param name: name of the component
         """
 
         self._name = name
-        super().__init__(baseurl,path=path)
-        
+        super().__init__(baseurl, path=path)
+
     @property
     def name(self):
         """the name of the component"""
@@ -201,43 +210,40 @@ class PiccoloNamedClientComponent(PiccoloClientComponent):
 
     @property
     def logName(self):
-        return 'piccolo.client.{0}.{1}'.format(self.NAME,self.name)
- 
+        return 'piccolo.client.{0}.{1}'.format(self.NAME, self.name)
+
     @property
     def path(self):
         if self._path is None:
-            return os.path.join('/',self.NAME,self.name)
+            return os.path.join('/', self.NAME, self.name)
         else:
             return self._path
 
-    
+
 if __name__ == '__main__':
     from piccolo3.common import piccoloLogging
     piccoloLogging(debug=True)
-    
+
     client = PiccoloClientComponent('coap://piccolo-thing2')
-        
+
     if True:
-        print (client.get('/sysinfo/clock'))
-
-
+        print(client.get('/sysinfo/clock'))
 
     if False:
         async def observe():
-           protocol = await aiocoap.Context.create_client_context()
-           #request = aiocoap.Message(code=aiocoap.GET,uri='coap://piccolo-thing2/data_dir/current_run',observe=0)
-           request = aiocoap.Message(code=aiocoap.GET,uri='coap://piccolo-thing2/spectrometer/S_instrument_simulator_2/min_time',observe=0)
+            protocol = await aiocoap.Context.create_client_context()
+            #request = aiocoap.Message(code=aiocoap.GET,uri='coap://piccolo-thing2/data_dir/current_run',observe=0)
+            request = aiocoap.Message(
+                code=aiocoap.GET, uri='coap://piccolo-thing2/spectrometer/S_instrument_simulator_2/min_time', observe=0)
 
-           pr = protocol.request(request)
-           r = await pr.response
-           print("First response: %s\n%r"%(r, r.payload))
+            pr = protocol.request(request)
+            r = await pr.response
+            print("First response: %s\n%r" % (r, r.payload))
 
-           async for r in pr.observation:
-              print("Next result: %s\n%r"%(r, r.payload))
+            async for r in pr.observation:
+                print("Next result: %s\n%r" % (r, r.payload))
 
-        #asyncio.get_event_loop().run_until_complete(observe())
+        # asyncio.get_event_loop().run_until_complete(observe())
         loop = asyncio.get_event_loop()
         loop.create_task(observe())
-        print('here')
         loop.run_forever()
-

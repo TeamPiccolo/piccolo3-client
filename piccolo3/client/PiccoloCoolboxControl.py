@@ -326,10 +326,9 @@ async def main():
     coolbox = PiccoloCoolboxControl(base)
     await asyncio.sleep(1)
 
-    print("in control", coolbox.temperature_sensors.keys())
     for i in range(10):
         for temp in coolbox.temperature_sensors:
-            print("also in control", temp,
+            print(temp,
                   coolbox.temperature_sensors[temp].current_temp)
         await asyncio.sleep(1)
     coolbox.shutdown_tasks()
