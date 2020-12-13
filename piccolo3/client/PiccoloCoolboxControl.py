@@ -26,6 +26,45 @@ from .PiccoloBaseClient import *
 import asyncio
 
 
+class PiccoloSerialConnection(PiccoloNamedClientComponent):
+    """manage the serial connection on coolbox"""
+
+    NAME = "coolboxctrl"
+
+    def __init__(self, baseurl, name):
+
+        super().__init__(baseurl, name)
+
+        self._serial_port = None
+
+        self._callbacks = []
+
+        self.add_task(self._get_serial_port())
+
+    def register_callback(self, cb):
+        self._callbacks.append(cb)
+
+    async def _get_serial_port(self):
+        u = 'serial_port'
+        async for s in self.a_observe(u):
+            for cb in self._callbacks:
+                await cb(json.dumps((self.name, u, s)))
+            self._serial_port = s
+
+    async def get_serial_port(self):
+        self._serial_port = await self.a_get('serial_port')
+        return self._serial_port
+
+    async def set_serial_port(self, t):
+        await self.a_put('serial_port', str(t))
+
+
+    @property
+    def serial_port(self):
+        return self._serial_port
+
+
+
 class PiccoloTemperature(PiccoloNamedClientComponent):
     """manage temperature control on coolbox"""
 
@@ -183,7 +222,7 @@ class PiccoloFan(PiccoloNamedClientComponent):
         return self._fanState
 
     async def set_target_fan_state(self, t):
-        await self.a_put('target_fan_state', float(t))
+        await self.a_put('target_fan_state', int(t))
 
     async def _get_current_fan_state(self):
         u = 'current_fan_state'
@@ -214,11 +253,13 @@ class PiccoloCoolboxControl(PiccoloClientComponent):
     def __init__(self, baseurl):
         super().__init__(baseurl)
 
+        self._serial_connections = {}
         self._temperature_sensors = {}
         self._fan_sensors = {}
         self._current_sensors = {}
         self._voltage_sensors = {}
 
+        self._serials = None
         self._temps = None
         self._fans = None
         self._currents = None
@@ -226,11 +267,21 @@ class PiccoloCoolboxControl(PiccoloClientComponent):
 
         self._callbacks = []
 
+        self.add_task(self._init_serial_connections())
         self.add_task(self._init_temperature_sensors())
         self.add_task(self._init_fan_sensors())
         self.add_task(self._init_current_sensors())
         self.add_task(self._init_voltage_sensors())
 
+    async def _init_serial_connections(self):
+        connections = await self.get_serial_connections()
+        for t in connections:
+            if t not in self.serial_connections:
+                self.serial_connections[t] = PiccoloSerialConnection(
+                    self.baseurl, t)
+                for c in self._callbacks:
+                    self.serial_connections[t].register_callback(c)
+    
     async def _init_temperature_sensors(self):
         sensors = await self.get_temperature_sensors()
         for t in sensors:
@@ -273,6 +324,8 @@ class PiccoloCoolboxControl(PiccoloClientComponent):
             self.temperature_sensors[t].register_callback(cb)
 
     def shutdown_tasks(self):
+        for t in self.serial_connections:
+            self.serial_connections[t].shutdown_tasks()
         for t in self.temperature_sensors:
             self.temperature_sensors[t].shutdown_tasks()
         for t in self.fan_sensors:
@@ -282,6 +335,11 @@ class PiccoloCoolboxControl(PiccoloClientComponent):
         for t in self.voltage_sensors:
             self.voltage_sensors[t].shutdown_tasks()
         super().shutdown_tasks()
+
+    async def get_serial_connections(self):
+        if self._serials is None:
+            self._serials = await self.a_get('serial_connections')
+        return self._serials
 
     async def get_temperature_sensors(self):
         if self._temps is None:
@@ -302,6 +360,10 @@ class PiccoloCoolboxControl(PiccoloClientComponent):
         if self._voltages is None:
             self._voltages = await self.a_get('voltage_sensors')
         return self._voltages
+
+    @property
+    def serial_connections(self):
+        return self._serial_connections
 
     @property
     def temperature_sensors(self):
