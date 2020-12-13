@@ -253,7 +253,6 @@ class PiccoloCoolboxControl(PiccoloClientComponent):
     def __init__(self, baseurl):
         super().__init__(baseurl)
 
-        self._serial_connections = {}
         self._temperature_sensors = {}
         self._fan_sensors = {}
         self._current_sensors = {}
@@ -267,20 +266,10 @@ class PiccoloCoolboxControl(PiccoloClientComponent):
 
         self._callbacks = []
 
-        self.add_task(self._init_serial_connections())
         self.add_task(self._init_temperature_sensors())
         self.add_task(self._init_fan_sensors())
         self.add_task(self._init_current_sensors())
         self.add_task(self._init_voltage_sensors())
-
-    async def _init_serial_connections(self):
-        connections = await self.get_serial_connections()
-        for t in connections:
-            if t not in self.serial_connections:
-                self.serial_connections[t] = PiccoloSerialConnection(
-                    self.baseurl, t)
-                for c in self._callbacks:
-                    self.serial_connections[t].register_callback(c)
     
     async def _init_temperature_sensors(self):
         sensors = await self.get_temperature_sensors()
@@ -324,8 +313,6 @@ class PiccoloCoolboxControl(PiccoloClientComponent):
             self.temperature_sensors[t].register_callback(cb)
 
     def shutdown_tasks(self):
-        for t in self.serial_connections:
-            self.serial_connections[t].shutdown_tasks()
         for t in self.temperature_sensors:
             self.temperature_sensors[t].shutdown_tasks()
         for t in self.fan_sensors:
@@ -335,11 +322,6 @@ class PiccoloCoolboxControl(PiccoloClientComponent):
         for t in self.voltage_sensors:
             self.voltage_sensors[t].shutdown_tasks()
         super().shutdown_tasks()
-
-    async def get_serial_connections(self):
-        if self._serials is None:
-            self._serials = await self.a_get('serial_connections')
-        return self._serials
 
     async def get_temperature_sensors(self):
         if self._temps is None:
@@ -360,10 +342,6 @@ class PiccoloCoolboxControl(PiccoloClientComponent):
         if self._voltages is None:
             self._voltages = await self.a_get('voltage_sensors')
         return self._voltages
-
-    @property
-    def serial_connections(self):
-        return self._serial_connections
 
     @property
     def temperature_sensors(self):
