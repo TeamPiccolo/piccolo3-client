@@ -107,7 +107,6 @@ class PiccoloTemperature(PiccoloNamedClientComponent):
             self._current_temp = s
 
     async def get_current_temp(self):
-        self.log.info(self.uri('current_temp'))
         self._current_temp = await self.a_get('current_temp')
         return self._current_temp
 
@@ -146,7 +145,6 @@ class PiccoloVoltage(PiccoloNamedClientComponent):
             self._current_voltage = s
 
     async def get_current_voltage(self):
-        self.log.info(self.uri('current_voltage'))
         self._current_voltage = await self.a_get('current_voltage')
         return self._current_voltage
 
@@ -181,7 +179,6 @@ class PiccoloCurrent(PiccoloNamedClientComponent):
             self._current_current = s
 
     async def get_current_current(self):
-        self.log.info(self.uri('current_current'))
         self._current_current = await self.a_get('current_current')
         return self._current_current
 
@@ -232,7 +229,6 @@ class PiccoloFan(PiccoloNamedClientComponent):
             self._current_fan_state = s
 
     async def get_current_fan_state(self):
-        self.log.info(self.uri('current_fan_state'))
         self._current_fan_state = await self.a_get('current_fan_state')
         return self._current_fan_state
 
