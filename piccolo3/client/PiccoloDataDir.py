@@ -22,27 +22,30 @@
 
 __all__ = ['PiccoloDataDir']
 
-from .PiccoloBaseClient import *
-import asyncio, aiocoap
+from .PiccoloBaseClient import PiccoloClientComponent
+from .PiccoloBaseClient import PiccoloNamedClientComponent
+import asyncio
 import json
+
 
 class PiccoloRunDir(PiccoloNamedClientComponent):
     NAME = 'run'
 
-    def __init__(self,baseurl,name):
-        super().__init__(baseurl,name,path='/data_dir/runs/'+name)
+    def __init__(self, baseurl, name):
+        super().__init__(baseurl, name,
+                         path='/data_dir/runs/' + name)
 
         self._current_batch = None
 
     def __str__(self):
         return self.name
 
-    async def get_spectra(self,sname):
-        return await self.a_put('spectra',sname)
-    
+    async def get_spectra(self, sname):
+        return await self.a_put('spectra', sname)
+
     async def get_spectra_list(self):
         return await self.a_get('spectra_list')
-    
+
     async def get_current_batch(self):
         self._current_batch = await self.a_get('current_batch')
         return self._current_batch
@@ -51,12 +54,13 @@ class PiccoloRunDir(PiccoloNamedClientComponent):
     def current_batch(self):
         return self._current_batch
 
+
 class PiccoloDataDir(PiccoloClientComponent):
     """manage piccolo output data directory"""
 
     NAME = 'data_dir'
 
-    def __init__(self,baseurl):
+    def __init__(self, baseurl):
         super().__init__(baseurl)
 
         self._datadir = None
@@ -68,99 +72,105 @@ class PiccoloDataDir(PiccoloClientComponent):
         self.add_task(self._init_runs())
         self.add_task(self._update_current_run())
 
-    def register_callback(self,cb):
+    def register_callback(self, cb):
         self._callbacks.append(cb)
-        
+
     async def _init_runs(self):
         runs = await self.a_put('all_runs')
         for r in runs:
             if r not in self._runs:
-                self._runs[r] = PiccoloRunDir(self.baseurl,r)
+                self._runs[r] = PiccoloRunDir(self.baseurl, r)
 
     async def _update_current_run(self):
         async for r in self.a_observe('current_run'):
             if r not in self._runs:
-                self._runs[r] = PiccoloRunDir(self.baseurl,r)
+                self._runs[r] = PiccoloRunDir(self.baseurl, r)
             for cb in self._callbacks:
-                await cb(json.dumps({'current_run':r}))
+                await cb(json.dumps({'current_run': r}))
             self._current_run = self._runs[r]
 
     async def get_mount(self):
         r = await self.a_get('mount')
         return r
-    async def set_mount(self,m):
-        await self.a_put('mount',m)
+
+    async def set_mount(self, m):
+        await self.a_put('mount', m)
 
     async def get_datadir(self):
         if self._datadir is None:
             self._datadir = await self.a_get('datadir')
         return self._datadir
-        
+
     async def get_current_run(self):
         run = await self.a_get('current_run')
         if run not in self._runs:
-            self._runs[run] = PiccoloRunDir(self.baseurl,run)
+            self._runs[run] = PiccoloRunDir(self.baseurl, run)
         self._current_run = self._runs[run]
         return self._current_run
-    async def set_current_run(self,run):
-        if isinstance(run,PiccoloRunDir):
-            run = run.name
-        await self.a_put('current_run',run)
 
-    async def get_runs(self,alpha=False,reverse=False,nitems=None,page=0):
-        runs = await self.a_put('all_runs',alpha=alpha,reverse=reverse,nitems=nitems,page=page)
+    async def set_current_run(self, run):
+        if isinstance(run, PiccoloRunDir):
+            run = run.name
+        await self.a_put('current_run', run)
+
+    async def get_runs(self, alpha=False, reverse=False,
+                       nitems=None, page=0):
+        runs = await self.a_put('all_runs', alpha=alpha,
+                                reverse=reverse, nitems=nitems,
+                                page=page)
         return runs
-        
+
     @property
     def current_run(self):
         return self._current_run
 
-        
     # implement methods so object can act as a read-only dictionary
     def keys(self):
         return self._runs.keys()
-    def __getitem__(self,r):
+
+    def __getitem__(self, r):
         return self._runs[r]
+
     def __len__(self):
         return len(self._runs)
+
     def __iter__(self):
         for r in self._runs.keys():
             yield r
-    def __contains__(self,r):
+
+    def __contains__(self, r):
         return r in self._runs
 
-    
 
 async def main():
     base = 'coap://piccolo-thing2'
 
     dataDir = PiccoloDataDir(base)
     m = await dataDir.get_mount()
-    print (m)
+    print(m)
 
     run = await dataDir.get_current_run()
-    b = await run.get_current_batch()    
-    print (run.name,b)
+    b = await run.get_current_batch()
+    print(run.name, b)
 
     await dataDir.set_current_run('magi_19')
     run = await dataDir.get_current_run()
-    print (run.name)
+    print(run.name)
     for i in range(10):
-        print (dataDir.current_run)
+        print(dataDir.current_run)
         await asyncio.sleep(1)
-    
+
     run = await dataDir.get_current_run()
-    print (run.name)
-    
+    print(run.name)
+
     await asyncio.sleep(30)
-    
-    print (dataDir.keys())
 
-    print (await dataDir.get_runs())
+    print(dataDir.keys())
 
-        
+    print(await dataDir.get_runs())
+
+
 if __name__ == '__main__':
-    import time
     from piccolo3.common import piccoloLogging
     piccoloLogging(debug=True)
 

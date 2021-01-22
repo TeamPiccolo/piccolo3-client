@@ -26,16 +26,16 @@ import gpiozero
 # Which port is the Pixhawk trigger signal connected to? It should be on GPIO
 # port 12, but can be moved if necessary, Avoid ports 5, 17, 18, 22, 23, 24, 25
 # and 27 as these are used by the Piccolo's shutters and LEDs.
-trigger_port = 12 # Should be on GPIO 12.
-reset_port = 20 # used to reset signal
-
+trigger_port = 12  # Should be on GPIO 12.
+reset_port = 20    # used to reset signal
 
 trigger = gpiozero.DigitalInputDevice(trigger_port)
-reset   = gpiozero.DigitalOutputDevice(reset_port)
+reset = gpiozero.DigitalOutputDevice(reset_port)
 
 log = logging.getLogger("piccolo.trigger")
 
-async def trigger_loop(pclient,run,nsequence,auto,delay,simulate_trigger):
+
+async def trigger_loop(pclient, run, nsequence, auto, delay, simulate_trigger):
     while True:
         log.info('waiting for trigger')
         if simulate_trigger:
@@ -47,7 +47,8 @@ async def trigger_loop(pclient,run,nsequence,auto,delay,simulate_trigger):
 
         if await pclient.control.get_status() == 'idle':
             log.info('start recording')
-            await pclient.control.record_sequence(run,nsequence=nsequence,auto=auto,delay=delay)
+            await pclient.control.record_sequence(run, nsequence=nsequence,
+                                                  auto=auto, delay=delay)
         else:
             log.debug('piccolo is busy')
         await asyncio.sleep(0.1)
@@ -56,9 +57,13 @@ async def trigger_loop(pclient,run,nsequence,auto,delay,simulate_trigger):
         await asyncio.sleep(0.01)
         reset.off()
 
+
 def main():
     parser = piccolo.PiccoloArgumentParser()
-    parser.add_argument('-s','--simulate-trigger',action='store_true',default=False,help='trigger every 1 second, useful for debugging')
+    parser.add_argument('-s', '--simulate-trigger',
+                        action='store_true',
+                        default=False,
+                        help='trigger every 1 second, useful for debugging')
     parser.addRunOptions()
 
     args = parser.parse_args()
@@ -66,30 +71,36 @@ def main():
     piccoloLogging(debug=args.debug)
 
     if trigger.value:
-        # If the trigger signal is high initially this probably indicates an electronics problem. Check the connections. The LED
-        log.error('Cannot start Piccolo Client because the Pixhawk trigger signal is active (high). Check that the trigger signal from the Pixhawk is connected and that it is low. The Pixhawk trigger LED should be off.')
+        # If the trigger signal is high initially this probably
+        # indicates an electronics problem. Check the connections and the LED
+        log.error("""Cannot start Piccolo Client because the Pixhawk trigger signal
+is active (high). Check that the trigger signal from the Pixhawk
+is connected and that it is low. The Pixhawk trigger LED should be off.""")
         log.info('waiting to reset trigger')
     while trigger.value:
         pass
     log.debug('Finished setting up port ')
-    
-    
+
     pclient = piccolo.PiccoloSystem(args.piccolo_url)
 
     def stop_piccolo(signum, frame):
         pclient.shutdown()
         sys.exit(1)
-    for s in [signal.SIGINT,signal.SIGTERM]:
-        signal.signal(s,stop_piccolo)
-        
-    
+    for s in [signal.SIGINT, signal.SIGTERM]:
+        signal.signal(s, stop_piccolo)
+
     loop = asyncio.get_event_loop()
     if args.list_spectrometers:
         loop.run_until_complete(pclient.spec.pprint())
     else:
-        loop.run_until_complete(trigger_loop(pclient,args.run,args.number_sequences,args.auto,args.delay,args.simulate_trigger))
+        loop.run_until_complete(
+            trigger_loop(pclient, args.run,
+                         args.number_sequences,
+                         args.auto, args.delay,
+                         args.simulate_trigger))
 
     pclient.shutdown()
+
 
 if __name__ == '__main__':
     main()

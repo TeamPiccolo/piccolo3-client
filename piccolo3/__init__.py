@@ -16,4 +16,3 @@
 # along with piccolo3-server.  If not, see <http://www.gnu.org/licenses/>.
 
 __import__('pkg_resources').declare_namespace(__name__)
-

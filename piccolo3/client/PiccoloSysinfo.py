@@ -22,15 +22,15 @@
 
 __all__ = ['PiccoloSysinfo']
 
-from .PiccoloBaseClient import *
-from . import __version__
+from .PiccoloBaseClient import PiccoloClientComponent
 import asyncio
+
 
 class PiccoloSysinfo(PiccoloClientComponent):
 
     NAME = "sysinfo"
 
-    def __init__(self,baseurl):
+    def __init__(self, baseurl):
         super().__init__(baseurl)
         self._host = None
         self._server_version = None
@@ -38,17 +38,21 @@ class PiccoloSysinfo(PiccoloClientComponent):
     async def get_cpu(self):
         c = await self.a_get('cpu')
         return c
+
     async def get_mem(self):
         m = await self.a_get('mem')
         return m
+
     async def get_host(self):
         if self._host is None:
             self._host = await self.a_get('host')
         return self._host
+
     async def get_server_version(self):
         if self._server_version is None:
             self._server_version = await self.a_get('version')
         return self._server_version
+
     async def get_clock(self):
         c = await self.a_get('clock')
         return c
@@ -58,9 +62,9 @@ class PiccoloSysinfo(PiccoloClientComponent):
         info['cpu'] = await self.get_cpu()
         info['mem'] = await self.get_mem()
         return info
-    
-    async def set_clock(self,data):
-        await self.a_put('clock',data)
+
+    async def set_clock(self, data):
+        await self.a_put('clock', data)
 
 
 async def main():
@@ -68,17 +72,16 @@ async def main():
 
     p = PiccoloSysinfo(base)
 
-    print (await p.get_host())
+    print(await p.get_host())
     for i in range(5):
         c = await p.get_clock()
         info = await p.get_info()
-        
-        print (c,info['cpu'],info['mem'])
+
+        print(c, info['cpu'], info['mem'])
         await asyncio.sleep(1)
 
 
 if __name__ == '__main__':
-    import time
     from piccolo3.common import piccoloLogging
     piccoloLogging(debug=True)
 

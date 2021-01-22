@@ -18,13 +18,13 @@
 from setuptools import setup, find_packages
 
 setup(
-    name = "piccolo3-client",
-    namespace_packages = ['piccolo3'],
-    packages = find_packages(),
+    name="piccolo3-client",
+    namespace_packages=['piccolo3'],
+    packages=find_packages(),
     use_scm_version=True,
     setup_requires=['setuptools_scm'],
-    include_package_data = True,
-    install_requires = [
+    include_package_data=True,
+    install_requires=[
         'aiocoap',
         'pytz',
         'configobj',
@@ -33,13 +33,14 @@ setup(
         'console_scripts': [
             'piccolo3-record = piccolo3.precord:main',
             'piccolo3-integration-times = piccolo3.ptimes:main',
-            'piccolo3-triggered = piccolo3.ptriggered:main',
-            ],
+            'piccolo3-triggered = piccolo3.ptriggered:main'],
     },
 
     # metadata for upload to PyPI
-    author = "Magnus Hagdorn, Alasdair MacArthur, Iain Robinson",
-    description = "Part of the piccolo3 system. This package provides the piccolo3 client",
-    license = "GPL",
-    url = "https://bitbucket.org/teampiccolo/piccolo3-client",
+    author="Magnus Hagdorn, Alasdair MacArthur, Iain Robinson",
+    description="""Part of the piccolo3 system.
+
+This package provides the piccolo3 client""",
+    license="GPL",
+    url="https://github.com/TeamPiccolo/piccolo3-client",
 )

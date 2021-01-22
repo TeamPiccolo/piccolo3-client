@@ -23,11 +23,11 @@ except DistributionNotFound:
     # package is not installed
     pass
 
-from .PiccoloClientCfg import *
+from .PiccoloClientCfg import *     # noqa: F401 F403
 
-from .Piccolo import *
-from .PiccoloDataDir import *
-from .PiccoloSysinfo import *
-from .PiccoloSpectrometer import *
-from .PiccoloScheduler import *
-from .PiccoloSystem import *
+from .Piccolo import *              # noqa: F401 F403
+from .PiccoloDataDir import *       # noqa: F401 F403
+from .PiccoloSysinfo import *       # noqa: F401 F403
+from .PiccoloSpectrometer import *  # noqa: F401 F403
+from .PiccoloScheduler import *     # noqa: F401 F403
+from .PiccoloSystem import *        # noqa: F401 F403

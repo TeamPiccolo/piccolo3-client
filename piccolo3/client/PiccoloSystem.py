@@ -17,18 +17,21 @@
 
 __all__ = ['PiccoloSystem']
 
-from .Piccolo import *
-from .PiccoloDataDir import *
-from .PiccoloSysinfo import *
-from .PiccoloSpectrometer import *
-from .PiccoloScheduler import *
+from .Piccolo import PiccoloControl
+from .PiccoloDataDir import PiccoloDataDir
+from .PiccoloSysinfo import PiccoloSysinfo
+from .PiccoloSpectrometer import PiccoloSpectrometers
+from .PiccoloScheduler import PiccoloScheduler
 from .PiccoloBaseClient import PiccoloClientBase
 
 import asyncio
 
+
 class PiccoloSystem(PiccoloClientBase):
+
     NAME = None
-    def __init__(self,baseurl):
+
+    def __init__(self, baseurl):
         super().__init__()
         self.control = PiccoloControl(baseurl)
         self.scheduler = PiccoloScheduler(baseurl)
@@ -44,7 +47,7 @@ class PiccoloSystem(PiccoloClientBase):
             except asyncio.CancelledError:
                 continue
         self.log.debug('all tasks done')
-        
+
     def shutdown(self):
         self.log.debug('shutting down')
         self.control.shutdown_tasks()
