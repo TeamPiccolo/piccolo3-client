@@ -126,7 +126,7 @@ class PiccoloClientComponent(PiccoloClientBase):
                         except (ConnectionRefusedError,aiocoap.error.NetworkError) as e:
                             if i % 10 == 0:
                                 self.log.error(e)
-                            self.__protocol.shutdown()
+                            await self.__protocol.shutdown()
                             await asyncio.sleep(1)
                             continue
                     else:
