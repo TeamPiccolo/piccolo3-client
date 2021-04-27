@@ -123,7 +123,7 @@ class PiccoloClientComponent(PiccoloClientBase):
                             p_request = self.__protocol.request(request)
                             await p_request.response
                             break
-                        except ConnectionRefusedError as e:
+                        except (ConnectionRefusedError,aiocoap.error.NetworkError) as e:
                             if i % 10 == 0:
                                 self.log.error(e)
                             self.__protocol.shutdown()
