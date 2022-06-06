@@ -1,0 +1,3 @@
+aiocoap
+pytz
+configobj
